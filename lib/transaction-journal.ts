@@ -8,7 +8,7 @@ const schema = z.object({
   version: z.literal(1), id: z.string().uuid(),
   scope: z.enum(['ticket', 'loyalty', 'membership', 'certificate']),
   action: z.enum(['mint', 'transfer', 'redeem', 'receipt']),
-  asset: address, owner: address, signer: address,
+  asset: address, owner: address, signer: address, programId: address.optional(),
   signature: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{64,88}$/),
   blockhash: address, lastValidBlockHeight: z.number().int().nonnegative(),
   createdAt: z.string().datetime(), before: progressSchema,
@@ -54,7 +54,15 @@ export function applyConfirmed(current: Progress, pending: PendingTransaction): 
     if (live.asset && saved.asset && live.asset !== saved.asset) throw new Error('学習記録と取引のNFTが一致しません。記録を保持しています。');
     if (stages.indexOf(live.stage) < stages.indexOf(saved.stage)) restored.records[id] = { ...saved };
   }
-  if (pending.action === 'receipt') return restored;
+  if (pending.action === 'receipt') {
+    if (completed(restored) !== 3) throw new Error('学習完了の記録が一致しません。確認待ち取引を保持しています。');
+    // Older journals do not include the program address. They still recover,
+    // without inventing an address from the current app configuration.
+    if (!pending.programId) return restored;
+    return { ...restored, certificate: current.certificate ?? pending.before.certificate,
+      receipt: { id: pending.asset, wallet: pending.signer, programId: pending.programId,
+        signature: pending.signature, date: pending.createdAt } };
+  }
   if (pending.scope === 'certificate') {
     if (pending.action !== 'mint' || completed(restored) !== 3) throw new Error('修了証の学習記録が一致しません。');
     if (current.certificate && current.certificate.id !== pending.asset) throw new Error('別の修了証が記録されています。');

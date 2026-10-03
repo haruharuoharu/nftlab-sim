@@ -7,7 +7,7 @@ export type ScenarioId = typeof scenarios[number]['id'];
 export type Mode = 'demo' | 'devnet';
 export type Stage = 'locked' | 'ready' | 'minted' | 'transferred' | 'redeemed';
 export type RecordState = {stage:Stage; asset?:string; owner?:string; signature?:string};
-export type Progress = {version:1; records:Record<ScenarioId,RecordState>; certificate?:{id:string;date:string;signature?:string}};
+export type Progress = {version:1; records:Record<ScenarioId,RecordState>; certificate?:{id:string;date:string;signature?:string}; receipt?:{id:string;wallet:string;programId:string;signature:string;date:string}};
 export function freshProgress():Progress {return {version:1,records:{ticket:{stage:'locked'},loyalty:{stage:'locked'},membership:{stage:'locked'}}};}
 export function canOpen(p:Progress,index:number){return index===0 || p.records[scenarios[index-1].id].stage==='redeemed';}
 export function completed(p:Progress){return scenarios.filter(s=>p.records[s.id].stage==='redeemed').length;}

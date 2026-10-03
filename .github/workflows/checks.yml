@@ -22,6 +22,8 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://nftlab:nftlab@localhost:5432/nftlab
+      # Enable the optional receipt UI for mocked browser coverage. No CI Devnet writes.
+      NEXT_PUBLIC_ANCHOR_PROGRAM_ID: BUdXZQwEUkSkQve9wmdzGG4kkz8ViGmvnJ1b2EDAviwR
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

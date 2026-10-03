@@ -82,3 +82,30 @@ test('malformed or oversized records fail closed instead of silently unlocking m
     assert.equal(store.getItem(JOURNAL_KEY), value);
   }
 });
+
+test('receipt recovery preserves an issued certificate and persists the signer and original program', () => {
+  const before: Progress = { version: 1, records: { ticket: { stage: 'redeemed' }, loyalty: { stage: 'redeemed' }, membership: { stage: 'redeemed' } },
+    certificate: { id: 'existing-certificate', date: '2026-10-03T10:00:00.000Z', signature: '3'.repeat(88) } };
+  const record: PendingTransaction = { ...pending(before), scope: 'certificate', action: 'receipt', programId: 'BUdXZQwEUkSkQve9wmdzGG4kkz8ViGmvnJ1b2EDAviwR' };
+  const store = storage();savePending(store, record);
+  const restored = commitConfirmed(store, freshProgress(), record);
+  assert.deepEqual(restored.certificate, before.certificate);
+  assert.deepEqual(restored.receipt, { id: record.asset, wallet: record.signer, programId: record.programId, signature: record.signature, date: record.createdAt });
+  assert.deepEqual(applyConfirmed(restored, record), restored);
+  assert.deepEqual(JSON.parse(store.getItem('nftlab-v1-devnet')!), restored);
+  assert.equal(readPending(store), null);
+});
+
+test('legacy receipt journals recover without inventing a program or issuing a certificate', () => {
+  const before: Progress = { version: 1, records: { ticket: { stage: 'redeemed' }, loyalty: { stage: 'redeemed' }, membership: { stage: 'redeemed' } } };
+  const record: PendingTransaction = { ...pending(before), scope: 'certificate', action: 'receipt' };
+  const store = storage();savePending(store, record);
+  assert.deepEqual(commitConfirmed(store, freshProgress(), record), before);
+});
+
+test('an incomplete receipt snapshot cannot clear its pending journal', () => {
+  const record: PendingTransaction = { ...pending(), scope: 'certificate', action: 'receipt', programId: 'BUdXZQwEUkSkQve9wmdzGG4kkz8ViGmvnJ1b2EDAviwR' };
+  const store = storage();savePending(store, record);
+  assert.throws(() => commitConfirmed(store, record.before, record), /学習完了の記録/);
+  assert.equal(readPending(store)!.signature, record.signature);
+});
