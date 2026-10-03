@@ -53,7 +53,7 @@ npm run check:devnet -- --wallet YOUR_DEVNET_PUBLIC_ADDRESS --metadata-base http
 
 Devnet Genesis Hash、Coreの実行可否、テストSOL残高、指定したAnchorプログラムの実行可否、4種類の公開メタデータJSONを検査します。未指定項目は `pending`、RPC失敗・不足残高・未デプロイは `fail` と表示します。`fail` がある場合は終了コード1です。メタデータの画像URLはHTTPS形式を確認するだけで、画像の取得・ウォレット表示は別途検証します。
 
-`corePrerequisitesMet` と `anchorPrerequisitesMet` は読み取りで確認した条件だけを表します。署名・送信・Faucet要求・デプロイは行いません。Anchorは任意であり、未デプロイでもSolflareからのCore NFT操作は可能です。ソース内の仮Program IDを環境変数に設定するだけではAnchorを利用できません。
+`corePrerequisitesMet` と `anchorPrerequisitesMet` は読み取りで確認した条件だけを表します。署名・送信・Faucet要求・デプロイは行いません。Anchorは任意であり、Anchorを設定しなくてもSolflareからのCore NFT操作は可能です。Anchorを有効にする場合は、Devnet上で実行可能なデプロイ済みProgram IDを設定してください。
 
 ## PostgreSQL
 
@@ -72,7 +72,9 @@ Next.jsを再起動します。設定済みなら進捗をPostgreSQLに同期し
 
 `programs/nftlab-progress` は学習者のPDAへ3つの完了ビットと日時を保存し、署名と記録順序を検査します。繰り返し記録は冪等です。**クイズ正解やNFT取引を証明するものではなく、自己申告の学習記録です。** 独自プログラムはCoreへのCPIを行いません。NFT操作は既存のMetaplex Coreを直接使用します。
 
-独自プログラムはDevnetへ未デプロイで、デフォルトでは無効です。Anchor 0.32.1とAgave 2.3.0を使用します。Linux x86_64ではRustをインストール後、チェックサムを固定した公式リリースを導入できます。
+独自プログラムは2026-10-04 JSTにDevnetへデプロイ済みです。Program IDは `BUdXZQwEUkSkQve9wmdzGG4kkz8ViGmvnJ1b2EDAviwR`。Devnetの9項目の学習記録検証にも成功しています（[取引・アカウントの検証結果](devnet-verification.md)）。アプリではデフォルト無効のため、利用する場合は `NEXT_PUBLIC_ANCHOR_PROGRAM_ID` にこのIDを設定し、Next.jsを再起動／再ビルドします。既存のデプロイ済みプログラムを利用するだけなら、Anchorの再ビルドや再デプロイは不要です。
+
+以下は独自にビルド・ローカル検証する場合の手順です。Anchor 0.32.1、Agave 2.3.0、Rust 1.84.1を使用します。Linux x86_64ではRustとCコンパイラ等の開発ツールをインストール後、チェックサムを固定した公式リリースを導入できます。
 
 ```sh
 bash scripts/install-chain-tools.sh
@@ -81,7 +83,7 @@ anchor build
 npm run test:chain
 ```
 
-`anchor build` はSolana用 `.so` とIDLを生成します。初回は `target/deploy` にProgram ID用の鍵を生成し、ソースとAnchor.tomlのIDを同期します。鍵を再生成するとIDが変わるため、デプロイに使用したProgram ID鍵とアップグレード権限の鍵は安全な場所へ保管してください。鍵はGitから除外しています。
+`anchor build` はSolana用 `.so` とIDLを生成します。初回は `target/deploy` にProgram ID用の鍵を生成し、ソースとAnchor.tomlのIDを同期します。新しいチェックアウトにデプロイ済みの鍵を持ち込まずビルドすると、記載されたDevnetのIDとは別のIDに変わります。既存のプログラムを更新する場合は、元のProgram ID鍵とアップグレード権限の鍵を使用してください。両方の鍵は運用者のPCで安全に保管し、Gitから除外しています。
 
 Agaveの標準SBFツールチェーンはRust 1.84です。`rust-version`、`.cargo/config.toml`、コミット済み `Cargo.lock` で互換依存を固定しています。ロックファイルを削除して依存を更新する場合は、SBFビルドを再検証してください。ビルドには上流マクロ由来のcfg警告が出ますが、ローカルチェーンでの実行を検証しています。
 
@@ -130,25 +132,26 @@ npm run test:chain
 
 ## 今回の検証結果
 
-2026-10-03:
+2026-10-04 JST時点:
 
-- 単体15件・型チェック・本番ビルド: 成功。確認タイムアウト・保存失敗・復旧の冪等性・履歴不明時の維持も検査。
+- 単体19件・型チェック・本番ビルド: 成功。確認タイムアウト・保存失敗・復旧の冪等性・履歴不明時の維持と、Devnetの読み取り事前確認も検査。
 - デスクトップ／モバイル画面のE2E: 学習フローに加え、確認待ち取引の再読込・成功/失敗・履歴不明・破損・複数タブの復旧を検査（12件）。
-- PostgreSQL: 既存のGitHub Actionsで保存・セッション／モード分離・復元を検証。今回のCIでも再実行します。
+- PostgreSQL: GitHub Actionsで保存・セッション／モード分離・復元を検証済み。
 - Anchor: SBF・IDL生成に成功。ローカルチェーンで順序違反・範囲外・正常記録・所有者とdiscriminator・日時・冪等性・別署名者の拒否・3件の原子的記録、および実際のウォレットクライアントからの署名・事前保存の9項目に成功。
 - Core: Devnetから読み取った実プログラムをローカルチェーンで実行し、3シナリオの発行・譲渡・返送・消費、所有者検査、所有者以外の消費拒否、修了証の発行に成功（基本フローは送金を含む14取引）。追加の障害テストはチェーンで発行成功後に確認応答を失い、保存署名から復旧するケースと、保存失敗時に送信しないケースにも成功（復旧用の発行・消費を含め計16取引）。読み取り・preflight・確認を `confirmed` に統一。
-- Devnet実取引・独自Anchorデプロイ: **未完了**。RPC接続・Genesis Hash・Core読み取りは成功。FaucetはInternal errorの後に429（当日上限または枯渇）を返し、残高0のため取引送信・デプロイはしていません。自動検証には入金済みのテスト鍵が必要です。ユーザーのPCにあるSolflare Devnetウォレットでの手動実機検証は準備済みです。
+- Devnet Core実取引: PCのSolflareで3シナリオの発行・譲渡・利用と修了証発行を完了。10取引すべて `finalized`・`err: null`、修了証の所有者と再読み込み後の進捗保持も確認済み。
+- 独自AnchorのDevnetデプロイ・検証: ユーザーのPCからデプロイ成功。RPCで実行可能状態、更新権限、ELF、IDLを確認。`test:anchor` の9項目に成功し、6件の記録取引すべて `finalized`・`err: null`、3つの学習記録が完了ビット `7` と完了日時を保持することを照合済み。[詳細と署名](devnet-verification.md)。
+- 公開アプリ・外部ウォレットのメタデータ表示: 未検証。実機で発行したNFTのURIはlocalhost。
 - Android/Seeker実機: 未実施。
 
 GitHub Actionsではアプリ／DB／E2Eと、独立したAnchorビルド／ローカルチェーンのジョブを実行します。DevnetのFaucet・署名鍵はCIへ保存しません。
 
-### 中断後の再開確認（2026-10-03）
+### 中断後の再開確認
 
-- PR #1のHEAD `78bf1260b46035b5a868928465d0c7bd2064e776` に対する [CI run 37125214055](https://github.com/haruharuoharu/nftlab-sim/actions/runs/37125214055) はapp・chainとも成功。chainジョブのログでもSBF/IDL生成、Rustロック検査、Anchor 9項目、Coreの16取引を確認。ここは完了済みとして再実行せず、Devnetへ進む。
-- DevnetのGenesis Hashと実行可能なCoreを読み取り確認。ソースの仮Anchor Program IDはDevnetに存在しないことを確認した。独自Anchorのデプロイ完了とは扱わない。
-- 検証用の一時アドレスへのFaucet要求は `Internal error` を返した。署名・実取引・デプロイは未実施。既存Solflareの公開アドレスには自動Core検証の残高目安を満たすテストSOLを確認できたため、次はPCのSolflareから承認する手順へ進める。
-- `check:devnet` を追加。Devnet以外の拒否、入力不足とRPC失敗の区別、不足残高・未デプロイ、公開メタデータの検査に関する4テストに成功。既存分を含む単体19件、型チェックも成功。署名鍵はこのコマンドで読み取らない。
-- 残作業はSolflare実取引の署名取得、公開環境のメタデータ表示、運用者が保持する署名鍵による独自AnchorデプロイとDevnetの `test:anchor`。秘密鍵・シードフレーズをチャットへ貼る必要はない。
+- [PR #1](https://github.com/haruharuoharu/nftlab-sim/pull/1) と現在のHEAD・CIを確認します。`188872d` の [CI run 37132243809](https://github.com/haruharuoharu/nftlab-sim/actions/runs/37132243809) はapp・chainとも成功済みです。
+- 2026-10-04 JSTにPCでAnchor再ビルド、ローカルチェーン、Devnetデプロイ、Devnetの `test:anchor` まで完了しました。完了済みの検証を再開のためだけに繰り返す必要はありません。
+- `check:devnet` は公開アドレスだけで読み取り確認できます。署名鍵やFaucetを使いません。検証済みのProgram IDと取引・学習記録は [Devnet検証結果](devnet-verification.md) を参照してください。
+- 残作業は公開アプリとメタデータの外部表示、Android/Seeker実機、および任意Anchorを有効にしたブラウザ実機の署名フローです。秘密鍵・シードフレーズをチャットへ貼る必要はありません。
 
 ## 公開
 

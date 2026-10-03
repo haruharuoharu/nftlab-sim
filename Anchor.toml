@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-nftlab_progress = "FrqzKiz9NBHdy67LQ7SVx13SFoTkHHbbwv7LJTjxyXyp"
+nftlab_progress = "BUdXZQwEUkSkQve9wmdzGG4kkz8ViGmvnJ1b2EDAviwR"
 
 [registry]
 url = "https://api.apr.dev"
