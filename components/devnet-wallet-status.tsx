@@ -22,7 +22,10 @@ export default function DevnetWalletStatus({ endpoint }: { endpoint: string }) {
     finally { if (active()) setChecking(false); }
   }, [address, wallet.publicKey, endpoint]);
   useEffect(() => { let active = true;void check(() => active);return () => { active = false; }; }, [check]);
-  if (!address) return null;
+  if (!wallet.connected || !address) return <section className="wallet-status" aria-label="Devnetウォレット">
+    <p>{wallet.connecting ? 'ウォレットへの接続を待っています。' : 'ウォレットは未接続です。右上のボタンから接続してください。'}</p>
+    <p>再読み込み後は接続し直してください。学習進捗と発行済みの修了証は保存されています。</p>
+  </section>;
   return <section className="wallet-status" aria-label="Devnetウォレット">
     <p>接続中: {wallet.wallet?.adapter.name ?? 'Wallet'}</p>
     <p className="address">公開アドレス: {address}</p>

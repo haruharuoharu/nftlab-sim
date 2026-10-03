@@ -43,6 +43,8 @@ npm run check:devnet -- --wallet YOUR_DEVNET_PUBLIC_ADDRESS
 
 Anchor・公開メタデータを指定していない場合、その項目は `pending` です。これはlocalhostでの手動Core検証を妨げません。公開アドレスだけでは署名できないため、実取引の承認はSolflareで行います。
 
+再読み込み後はウォレットに自動再接続しません。右上の「Solflareを接続」（未選択時は「ウォレットを選択」）から接続し直します。接続後はボタンにウォレット名と短縮アドレス、画面に公開アドレスと残高が表示されます。学習進捗・発行済み修了証は接続状態とは別に保存されています。
+
 接続手順の参考: [Solflare公式のデスクトップdApp接続ガイド](https://help.solflare.com/en/articles/5797210-how-to-connect-to-dapps-using-the-solflare-wallet-desktop)。Solflareが一覧に見えない場合は、拡張機能を有効にし、ロックを解除してアプリのページを開き直します。
 
 ## 3. 最初はチケット1件で確認
