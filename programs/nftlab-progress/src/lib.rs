@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-declare_id!("9YvC9q9FcBZxnnG9KZYKEiaecK5Yv3gN6jqX8TBNUjf3");
+declare_id!("FrqzKiz9NBHdy67LQ7SVx13SFoTkHHbbwv7LJTjxyXyp");
 
 // Self-reported educational receipts. These are NOT instructor-attested
 // credentials and do not verify quiz answers or Metaplex NFT operations.

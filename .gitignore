@@ -7,3 +7,7 @@ target/
 .anchor/
 test-results/
 playwright-report/
+
+# Disposable test/deployment secrets
+*-keypair.json
+.devnet/

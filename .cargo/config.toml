@@ -1,0 +1,3 @@
+# Keep lockfile updates compatible with Agave 2.3.0's Rust 1.84 SBF toolchain.
+[resolver]
+incompatible-rust-versions = "fallback"

@@ -54,19 +54,50 @@ Next.jsを再起動します。設定済みなら進捗をPostgreSQLに同期し
 
 ## Anchor（任意の学習記録プログラム）
 
-`programs/nftlab-progress` は学習者ごとのPDAへ3つのシナリオ完了ビットと日時を保存します。学習者の署名と順序を検査し、繰り返し記録は冪等です。**クイズ正解・Metaplexの取引を検証する証明ではなく、自己申告の学習記録です。** NFT発行・譲渡・消費はMetaplex Coreのデプロイ済みプログラムを直接使用します。独自AnchorプログラムはCoreへのCPIを行いません。
+`programs/nftlab-progress` は学習者のPDAへ3つの完了ビットと日時を保存し、署名と記録順序を検査します。繰り返し記録は冪等です。**クイズ正解やNFT取引を証明するものではなく、自己申告の学習記録です。** 独自プログラムはCoreへのCPIを行いません。NFT操作は既存のMetaplex Coreを直接使用します。
 
-このプログラムは未デプロイで、デフォルトでは無効です。Rust、Solana CLI、Anchor 0.32.1を備えた環境で以下を実施します。
+独自プログラムはDevnetへ未デプロイで、デフォルトでは無効です。Anchor 0.32.1とAgave 2.3.0を使用します。Linux x86_64ではRustをインストール後、チェックサムを固定した公式リリースを導入できます。
 
 ```sh
+bash scripts/install-chain-tools.sh
+export PATH="$PWD/target/toolchain:$PWD/target/toolchain/solana-release/bin:$PATH"
 anchor build
-anchor keys sync
-anchor build
-solana config set --url devnet
-anchor deploy --provider.cluster devnet
+npm run test:chain
 ```
 
-`anchor keys sync` が設定するProgram IDを `.env.local` の `NEXT_PUBLIC_ANCHOR_PROGRAM_ID` に設定し、Next.jsを再ビルドします。公開リポジトリに鍵をコミットしないでください。UIは修了証発行前に3件の自己申告記録を1つの取引で書き込みます。プログラムが存在しなければエラーを表示します。Anchor記録とCore NFT発行は別々の取引です。2件目の失敗時は、学習記録のみ成功している可能性があります。
+`anchor build` はSolana用 `.so` とIDLを生成します。初回は `target/deploy` にProgram ID用の鍵を生成し、ソースとAnchor.tomlのIDを同期します。鍵を再生成するとIDが変わるため、デプロイに使用したProgram ID鍵とアップグレード権限の鍵は安全な場所へ保管してください。鍵はGitから除外しています。
+
+Agaveの標準SBFツールチェーンはRust 1.84です。`rust-version`、`.cargo/config.toml`、コミット済み `Cargo.lock` で互換依存を固定しています。ロックファイルを削除して依存を更新する場合は、SBFビルドを再検証してください。ビルドには上流マクロ由来のcfg警告が出ますが、ローカルチェーンでの実行を検証しています。
+
+`npm run test:chain` は一時的なローカルバリデータとテスト鍵を生成します。Devnetの公式Core ProgramDataからプログラムを読み取り、アドレス・ローダー・ELFを検査し、SHA-256とデプロイスロットを出力します。Anchorの8項目とCoreの3シナリオ・修了証を検証し、終了時にローカルチェーンとテスト鍵を削除します。RPC取得にネット接続が必要ですが、DevnetのSOLは使いません。ローカル用メタデータURIは検証用の架空URLであり、外部ウォレット表示は検証していません。アプリ本体はローカルRPCを拒否します。
+
+### Devnetへデプロイ
+
+入金済みの運用者自身のDevnet署名鍵を使用します。
+
+```sh
+export NFTLAB_DEPLOY_KEYPAIR=/absolute/path/to/devnet-deployer.json
+solana balance --url devnet --keypair "$NFTLAB_DEPLOY_KEYPAIR"
+anchor build
+anchor deploy --provider.cluster devnet --provider.wallet "$NFTLAB_DEPLOY_KEYPAIR"
+solana-keygen pubkey target/deploy/nftlab_progress-keypair.json
+```
+
+出力されたProgram IDを `.env.local` の `NEXT_PUBLIC_ANCHOR_PROGRAM_ID` に設定し、Next.jsを再ビルドします。デプロイにはプログラムのrent、IDL、手数料分のテストSOLが必要です。NFTテストの最低残高0.05 SOLだけでは足りません。UIは修了証発行前に3件の自己申告記録を1つの取引で書き込みます。
+
+### Devnet実取引の自動検証
+
+```sh
+export NFTLAB_TEST_KEYPAIR=/absolute/path/to/disposable-devnet-wallet.json
+export NFTLAB_TEST_RPC=https://api.devnet.solana.com
+export NFTLAB_METADATA_BASE=https://your-public-app.example
+npm run test:devnet
+
+export NFTLAB_TEST_PROGRAM_ID=YOUR_DEPLOYED_PROGRAM_ID
+npm run test:anchor
+```
+
+テスト鍵に最低0.05テストSOLを用意します。スクリプトはGenesis Hashを確認し、別の一時ウォレットへ0.002テストSOLを送金します。3シナリオを発行→譲渡→返送→消費し、修了証を発行します。所有者・消費後の状態・所有者以外の消費拒否を検査し、公開鍵と署名だけを出力します。Devnet上の修了証と少量のテスト残高は残ります。`NFTLAB_METADATA_BASE` は `/api/metadata/*` が読める公開アプリのHTTPS originです。実機のWallet Standard/Mobile Wallet Adapter認証を代替するテストではありません。
 
 ## チェック
 
@@ -74,26 +105,31 @@ anchor deploy --provider.cluster devnet
 npm test
 npm run typecheck
 npm run build
-npm run test:db
-npx playwright install --with-deps chromium
+npm run audit
+npx playwright install chromium
 npm run test:e2e
+anchor build
+npm run test:chain
 ```
-
-GitHub Actionsはアプリの単体テスト、型検査、ビルド、PostgreSQL結合テスト、ブラウザE2Eを実行します。Rust/Anchorのコンパイル・Devnet取引テストは含みません。
 
 ## 今回の検証結果
 
-- ローカル単体テスト、TypeScript検査、Next.js本番ビルド: 成功。
-- HTTP/APIスモークテスト: 画面、メタデータ、404、ブラウザ保存fallback、送信元・形式・サイズ検査に成功。
-- ブラウザ操作: 3クイズ、9回の練習操作、修了証発行、再読み込み復元、モード分離、390px幅の横はみ出し検査に成功（JavaScriptエラー0件）。Playwright E2E 2件（desktop/mobile）もローカルで成功。
-- PostgreSQL実接続: ローカル未実施。GitHub ActionsでDBスキーマ・保存・セッション／モード分離の結合テストに成功。
-- Devnet実取引・Android実機: 未実施。実ウォレットで検証が必要。
-- Anchorビルド・デプロイ: CLIがないため未実施。
+2026-10-03:
+
+- 単体5件・型チェック・本番ビルド: 成功。
+- デスクトップ／モバイル画面のE2E 2件: 成功。クイズから修了証、進捗復元、モード分離を確認。
+- PostgreSQL: 既存のGitHub Actionsで保存・セッション／モード分離・復元を検証。今回のCIでも再実行します。
+- Anchor: SBF・IDL生成に成功。ローカルチェーンで順序違反・範囲外・正常記録・所有者とdiscriminator・日時・冪等性・別署名者の拒否・3件の原子的記録の8項目に成功。
+- Core: Devnetから読み取った実プログラムをローカルチェーンで実行し、3シナリオの発行・譲渡・返送・消費、所有者検査、所有者以外の消費拒否、修了証の発行に成功（送金を含む14取引）。読み取り・preflight・確認を `confirmed` に統一。
+- Devnet実取引・独自Anchorデプロイ: **未完了**。RPC接続・Genesis Hash・Core読み取りは成功。FaucetはInternal errorの後に429（当日上限または枯渇）を返し、残高0のため取引送信・デプロイはしていません。入金済みのDevnet署名鍵が必要です。
+- Android/Seeker実機: 未実施。
+
+GitHub Actionsではアプリ／DB／E2Eと、独立したAnchorビルド／ローカルチェーンのジョブを実行します。DevnetのFaucet・署名鍵はCIへ保存しません。
 
 ## 公開
 
-Next.jsのNode.jsサーバーとPostgreSQLが必要です。静的ファイルだけのCloudflare PagesデプロイではAPI/DBは動きません。公開URL・DB・RPCの設定が必要で、このPR自体は公開デプロイを行いません。
+Next.jsのNode.jsサーバーとPostgreSQLが必要です。静的ファイルだけのCloudflare PagesではAPI/DBは動きません。公開URL・DB・RPCの設定が必要で、このPR自体は公開デプロイを行いません。
 
 ## 依存パッケージの監査
 
-`npm audit --omit=dev` は29件（high 13件、moderate 16件、critical 0件）を報告しました。主にWallet AdapterのReact Native/Metro系の間接依存と、Solana web3.jsのJSON-RPC系依存に由来します。集計は依存連鎖も数えるため、29件すべてが独立した脆弱性を意味するものではありません。現行依存範囲では自動修正のない項目が含まれます。本番公開前に各アドバイザリの到達可能性と上流修正版を確認してください。このPRでは互換性未確認の強制的なメジャーバージョン置換をしていません。
+`npm audit --omit=dev` は **3件（high 0、critical 0、moderate 3）** です。従来は29件（high 13、moderate 16）でした。未使用のReact Native/Metro依存を除き、jaysonのuuidを修正版へ固定しました。残る3件は同じstream-jsonアドバイザリの依存連鎖です。利用経路と互換性上の理由は [監査記録](dependency-audit.md) に記載しています。CIの `npm run audit` はhigh/criticalの再発時に失敗し、moderateの報告は表示します。

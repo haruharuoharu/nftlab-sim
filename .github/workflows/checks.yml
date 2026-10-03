@@ -29,6 +29,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run audit
       - run: npm test
       - run: npm run typecheck
       - run: npm run build
@@ -36,3 +37,23 @@ jobs:
       - run: npm run test:db
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+  chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Rust for Anchor IDL generation
+        run: rustup toolchain install 1.84.1 --profile minimal && rustup default 1.84.1
+      - name: Install checksum-verified Anchor 0.32.1 and Agave 2.3.0
+        run: bash scripts/install-chain-tools.sh
+      - name: Build SBF program and IDL
+        run: anchor build
+      - name: Verify committed Rust dependency lock
+        run: git diff --exit-code -- Cargo.lock
+      - name: Test Anchor receipts and Core NFT transactions on local validator
+        run: npm run test:chain
