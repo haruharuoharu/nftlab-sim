@@ -1,0 +1,3 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { scenarios } from '@/lib/scenarios';
+export async function GET(req:NextRequest,{params}:{params:Promise<{id:string}>}){const {id}=await params;const s=scenarios.find(s=>s.id===id);if(!s&&id!=='certificate')return NextResponse.json({error:'Not found'},{status:404});return NextResponse.json({name:s?`NFTLab ${s.title}`:'NFTLab Sim completion certificate',description:'Self-reported educational practice on Solana Devnet. Not an accredited qualification. No monetary value.',image:new URL('/nft-card.svg',req.nextUrl.origin).href,attributes:[{trait_type:'Network',value:'Devnet'},{trait_type:'Scenario',value:id},{trait_type:'Purpose',value:'Educational demo'}]});}

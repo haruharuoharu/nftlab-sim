@@ -72,3 +72,20 @@ Built for the Colosseum hackathon.
 ---
 
 🎬 Pitch video: [docs/pitch-video.mp4](docs/pitch-video.mp4)
+
+## v0.1 implementation
+
+The repository now includes a Japanese Next.js learning app with three quiz-gated scenarios, browser simulation, Solana Devnet Metaplex Core mint/transfer/burn operations, and shareable completion certificates. Progress uses browser storage with optional PostgreSQL synchronization.
+
+```sh
+npm ci
+cp .env.example .env.local
+npm run dev
+```
+
+Open http://localhost:3000. No wallet or database is required for simulation mode.
+
+See [development and verification guide](docs/development.md) for Devnet wallet setup, PostgreSQL schema, optional Anchor learning receipts, validation commands, and current limitations. Existing pitch materials describe the original concept; the guide describes the implementation.
+
+**Status:** application tests, typecheck and production build are locally verified. Devnet transactions, PostgreSQL integration, and Anchor compilation/deployment require environment validation. Certificates and Anchor receipts are self-reported educational records, not accredited or independently verified credentials. The custom Anchor program is optional and not deployed; Metaplex Core NFT actions directly use the existing Core program.
+

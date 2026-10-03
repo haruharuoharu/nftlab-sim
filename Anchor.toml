@@ -1,0 +1,10 @@
+[toolchain]
+anchor_version = "0.32.1"
+[features]
+resolution = true
+skip-lint = false
+[programs.devnet]
+nftlab_progress = "9YvC9q9FcBZxnnG9KZYKEiaecK5Yv3gN6jqX8TBNUjf3"
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
