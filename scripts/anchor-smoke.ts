@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { ComputeBudgetProgram, Connection, Keypair, PublicKey, SystemProgram, Transaction, TransactionInstruction, sendAndConfirmTransaction } from '@solana/web3.js';
-import { loadTestKey, requireTestNetwork } from './test-wallet';
+import { loadTestKey, requireTestNetwork, testWallet } from './test-wallet';
+import { recordReceiptOnConnection } from '../lib/anchor-receipt';
+import type { PreparedTransaction } from '../lib/transaction-journal';
 
 async function main() {
   const endpoint = process.env.NFTLAB_TEST_RPC || 'https://api.devnet.solana.com';
@@ -11,8 +13,8 @@ async function main() {
   if (!process.env.NFTLAB_TEST_PROGRAM_ID) throw new Error('Set NFTLAB_TEST_PROGRAM_ID to the deployed program address.');
   const programId = new PublicKey(process.env.NFTLAB_TEST_PROGRAM_ID);
   assert.ok((await connection.getAccountInfo(programId))?.executable, 'Program must be deployed');
-  const learner = Keypair.generate(), other = Keypair.generate();
-  await sendAndConfirmTransaction(connection, new Transaction().add(...[learner, other].map(key => SystemProgram.transfer({
+  const learner = Keypair.generate(), other = Keypair.generate(), clientLearner = Keypair.generate();
+  await sendAndConfirmTransaction(connection, new Transaction().add(...[learner, other, clientLearner].map(key => SystemProgram.transfer({
     fromPubkey: payer.publicKey, toPubkey: key.publicKey, lamports: 5_000_000,
   }))), [payer]);
   const [receipt] = PublicKey.findProgramAddressSync([Buffer.from('progress'), learner.publicKey.toBuffer()], programId);
@@ -45,6 +47,13 @@ async function main() {
   const [otherReceipt] = PublicKey.findProgramAddressSync([Buffer.from('progress'), other.publicKey.toBuffer()], programId);
   signatures.push(await sendAndConfirmTransaction(connection, new Transaction().add(...[0, 1, 2].map(s => ix(s, other, otherReceipt))), [other]));
   assert.equal((await connection.getAccountInfo(otherReceipt))!.data[40], 7, 'The app records all three scenarios atomically');
-  console.log(JSON.stringify({ endpoint, programId: programId.toBase58(), receipt: receipt.toBase58(), checks: ['out-of-order rejected', 'invalid index rejected', 'ordered records', 'receipt owner and discriminator', 'completion timestamp', 'idempotent retry', 'other signer rejected', 'atomic completion'], signatures }, null, 2));
+  let saved: PreparedTransaction | undefined;
+  const clientSignature=await recordReceiptOnConnection(connection,testWallet(clientLearner),programId.toBase58(),record=>{saved=record;});
+  assert.ok(saved);
+  assert.equal(saved.signature,clientSignature);
+  assert.equal(saved.signer,clientLearner.publicKey.toBase58());
+  assert.equal((await connection.getAccountInfo(new PublicKey(saved.asset)))!.data[40],7,'Wallet-adapter client records and journals the atomic receipt');
+  signatures.push(clientSignature);
+  console.log(JSON.stringify({ endpoint, programId: programId.toBase58(), receipt: receipt.toBase58(), checks: ['out-of-order rejected', 'invalid index rejected', 'ordered records', 'receipt owner and discriminator', 'completion timestamp', 'idempotent retry', 'other signer rejected', 'atomic completion', 'wallet-adapter receipt and pre-broadcast journal'], signatures }, null, 2));
 }
 main().catch((error) => { console.error(error.message); process.exitCode = 1; });
