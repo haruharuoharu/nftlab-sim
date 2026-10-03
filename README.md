@@ -87,5 +87,5 @@ Open http://localhost:3000. No wallet or database is required for simulation mod
 
 See [development and verification guide](docs/development.md) for Devnet wallet setup, PostgreSQL schema, optional Anchor learning receipts, validation commands, and current limitations. Existing pitch materials describe the original concept; the guide describes the implementation.
 
-**Status:** application tests, typecheck and production build are locally verified. Devnet transactions, PostgreSQL integration, and Anchor compilation/deployment require environment validation. Certificates and Anchor receipts are self-reported educational records, not accredited or independently verified credentials. The custom Anchor program is optional and not deployed; Metaplex Core NFT actions directly use the existing Core program.
+**Status:** application tests, typecheck and production build are locally verified. PostgreSQL integration is verified in GitHub Actions. Devnet transactions and Anchor compilation/deployment require environment validation. Certificates and Anchor receipts are self-reported educational records, not accredited or independently verified credentials. The custom Anchor program is optional and not deployed; Metaplex Core NFT actions directly use the existing Core program.
 

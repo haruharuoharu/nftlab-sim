@@ -86,7 +86,7 @@ GitHub Actionsはアプリの単体テスト、型検査、ビルド、PostgreSQ
 - ローカル単体テスト、TypeScript検査、Next.js本番ビルド: 成功。
 - HTTP/APIスモークテスト: 画面、メタデータ、404、ブラウザ保存fallback、送信元・形式・サイズ検査に成功。
 - ブラウザ操作: 3クイズ、9回の練習操作、修了証発行、再読み込み復元、モード分離、390px幅の横はみ出し検査に成功（JavaScriptエラー0件）。Playwright E2E 2件（desktop/mobile）もローカルで成功。
-- PostgreSQL実接続: ローカル未実施。CIで検証する構成。
+- PostgreSQL実接続: ローカル未実施。GitHub ActionsでDBスキーマ・保存・セッション／モード分離の結合テストに成功。
 - Devnet実取引・Android実機: 未実施。実ウォレットで検証が必要。
 - Anchorビルド・デプロイ: CLIがないため未実施。
 

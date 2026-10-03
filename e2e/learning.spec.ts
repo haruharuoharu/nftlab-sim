@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 test('learn, simulate, earn certificate, retain progress and isolate modes',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/');
+ const metadataResponse=await page.request.get('/api/metadata/ticket');expect(metadataResponse.status()).toBe(200);const metadata=await metadataResponse.json();expect(metadata.image).toBe(new URL('/nft-card.svg',metadataResponse.url()).href);
  await expect(page.getByRole('button',{name:'ロイヤルティ特典',exact:false})).toBeDisabled();
  // An incorrect answer does not unlock the sandbox.
  await page.locator('fieldset').nth(0).getByRole('radio').nth(0).check();
@@ -17,6 +18,11 @@ test('learn, simulate, earn certificate, retain progress and isolate modes',asyn
  }
  await page.getByRole('button',{name:'修了証を発行',exact:false}).click();
  await expect(page.getByRole('button',{name:'修了証を共有',exact:false})).toBeVisible();
+ if(process.env.DATABASE_URL){
+  await expect(page.getByText('PostgreSQLに同期',{exact:true})).toBeVisible();
+  await expect.poll(()=>page.evaluate(async()=>{const response=await fetch('/api/progress?namespace=demo');return (await response.json()).progress?.certificate?.id??'';})).toContain('SIM-CERT-');
+  await page.evaluate(()=>localStorage.removeItem('nftlab-v1-demo'));
+ }
  await page.waitForTimeout(500);await page.reload();
  await expect(page.getByRole('button',{name:'修了証を共有',exact:false})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
