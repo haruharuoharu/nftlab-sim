@@ -13,7 +13,8 @@
     "audit": "npm audit --omit=dev --audit-level=high",
     "test:devnet": "node --import tsx scripts/devnet-smoke.ts",
     "test:anchor": "node --import tsx scripts/anchor-smoke.ts",
-    "test:chain": "bash scripts/test-local-chain.sh"
+    "test:chain": "bash scripts/test-local-chain.sh",
+    "check:devnet": "node --import tsx scripts/check-devnet.ts"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-jp": "^5.3.0",

@@ -33,7 +33,15 @@ PCで `http://localhost:3000` を開きます。ターミナルは起動した�
 2. アプリの「Devnetで体験」を押します。
 3. 右上のウォレット接続ボタンからSolflareを選び、Solflareで接続を承認します。
 4. アプリに表示される公開アドレスがSolflareの口座Aと一致することを確認します。
-5. 「残高を再確認」でテストSOL残高を確認します。全3シナリオの検証では口座Aに0.05テストSOL以上を目安に用意します。
+5. 「残高を再確認」でテストSOL残高を確認します。全3シナリオの検証では口座Aに0.05テストSOL以上を目安に用意します。この目安は独自Anchorのデプロイ費用を含みません。
+
+アプリを起動する前に、以下で接続先と残高を読み取り確認することもできます。
+
+```sh
+npm run check:devnet -- --wallet YOUR_DEVNET_PUBLIC_ADDRESS
+```
+
+Anchor・公開メタデータを指定していない場合、その項目は `pending` です。これはlocalhostでの手動Core検証を妨げません。公開アドレスだけでは署名できないため、実取引の承認はSolflareで行います。
 
 接続手順の参考: [Solflare公式のデスクトップdApp接続ガイド](https://help.solflare.com/en/articles/5797210-how-to-connect-to-dapps-using-the-solflare-wallet-desktop)。Solflareが一覧に見えない場合は、拡張機能を有効にし、ロックを解除してアプリのページを開き直します。
 
