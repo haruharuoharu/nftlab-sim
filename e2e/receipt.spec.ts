@@ -69,6 +69,7 @@ test('an issued certificate can add a signed receipt without another NFT mint', 
   const button = page.getByRole('button', { name: '学習完了を記録', exact: false });
   await expect(button).toBeDisabled();await page.getByRole('button', { name: 'ウォレットを選択' }).click();
   await page.getByRole('button', { name: 'NFTLab Test Wallet', exact: false }).click();
+  await page.getByRole('button', { name: 'NFTLab Test Walletを接続' }).click();
   await expect(button).toBeEnabled();await button.click();
   await expect(page.getByText('接続ウォレットに学習完了を記録しました。')).toBeVisible();
   await expect(page.getByRole('button', { name: 'このウォレットに記録済み' })).toBeDisabled();
