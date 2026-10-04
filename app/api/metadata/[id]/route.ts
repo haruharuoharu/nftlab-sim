@@ -6,7 +6,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const scenario = scenarios.find(s => s.id === id);
   if (!scenario && id !== 'certificate') return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  // NextURL normalizes loopback IPs to localhost; retain the actual request Host.
+  const origin = process.env.NEXT_PUBLIC_APP_URL ||
+    `${req.nextUrl.protocol}//${req.headers.get('host') || req.nextUrl.host}`;
   const image = new URL('/nft-card.png', origin).href;
   return NextResponse.json({
     name: scenario ? `NFTLab ${scenario.title}` : 'NFTLab Sim completion certificate',
