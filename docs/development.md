@@ -143,7 +143,7 @@ npm run test:chain
 - 独自AnchorのDevnetデプロイ・検証: ユーザーのPCからデプロイ成功。RPCで実行可能状態、更新権限、ELF、IDLを確認。`test:anchor` の9項目に成功し、6件の記録取引すべて `finalized`・`err: null`、3つの学習記録が完了ビット `7` と完了日時を保持することを照合済み。[詳細と署名](devnet-verification.md)。
 - 任意AnchorのSolflare PC実機: 発行済み修了証から口座Bで学習完了を追加し、1取引で教材0・1・2を記録。`finalized`・`err: null`、署名者・PDA・所有プログラム・完了ビット `7`・完了日時をRPCで照合済み。追加後の再読み込み・口座Bへの再接続後も、学習完了・修了証・「このウォレットに記録済み」の表示をPC実機で確認済み。[取引とアカウント](devnet-verification.md#solflareブラウザからのanchor記録)。
 - 公開アプリ・外部ウォレットのメタデータ表示: HTTPSメタデータとPNG取得、公開URLから新規発行した修了証、PC Solflareの画像・名称表示を確認済み。詳細は [Devnet検証結果](devnet-verification.md#cloudflare公開と修了証の外部表示)。
-- Android/Seeker実機: 接続後の3/3完了画面、修正版でのv0 Anchor記録とCore修了証発行のfinalized・err:null、ウォレットの「Unverified collectibles」での画像・名称表示を確認。修了証発行後の再読み込み・再接続による保持確認は未実施。[実機結果](devnet-verification.md#seeker公開修正の実機結果)。
+- Android/Seeker実機: 接続後の3/3完了画面、修正版でのv0 Anchor記録とCore修了証発行のfinalized・err:null、ウォレットの「Unverified collectibles」での画像・名称表示を確認。11:15 JSTの再読み込み・再接続後の画面で、同じ修了証ID・記録したウォレット・「このウォレットに記録済み」の無効ボタンが保持されることも確認済み。[実機結果](devnet-verification.md#seeker公開修正の実機結果)。
 
 GitHub Actionsではアプリ／DB／E2Eと、独立したAnchorビルド／ローカルチェーンのジョブを実行します。アプリジョブは任意Anchorの公開Program IDを設定して画面をビルドし、モックRPCで署名から保存・復旧を検証します。実Devnetへは送信しません。DevnetのFaucet・署名鍵はCIへ保存しません。
 
@@ -152,7 +152,7 @@ GitHub Actionsではアプリ／DB／E2Eと、独立したAnchorビルド／ロ�
 - [PR #1](https://github.com/haruharuoharu/nftlab-sim/pull/1) と現在のHEAD・CIを確認します。公開中のコード `d90d935` の [CI run 37169365334](https://github.com/haruharuoharu/nftlab-sim/actions/runs/37169365334) はapp・cloudflare・chainすべて成功済みです（単体25件・E2E16件）。検証記録だけを更新したコミットでは公開アプリのコードは変わりません。
 - 2026-10-04 JSTにPCでAnchor再ビルド、ローカルチェーン、Devnetデプロイ、Devnetの `test:anchor` まで完了しました。完了済みの検証を再開のためだけに繰り返す必要はありません。
 - `check:devnet` は公開アドレスだけで読み取り確認できます。署名鍵やFaucetを使いません。検証済みのProgram IDと取引・学習記録は [Devnet検証結果](devnet-verification.md) を参照してください。
-- 任意Anchorを有効にしたSolflareブラウザの署名・チェーン記録は確認済みです。追加した学習記録の再読み込み後の表示保持もPC実機で確認済みです。公開アプリとPC Solflareの画像・名称表示も確認済みです。Seekerでも学習記録・修了証発行・画像と名称表示を確認済みです。残作業は修了証発行後のSeeker再読み込み・再接続での保持確認、およびウォレット詳細画面の説明表示です。秘密鍵・シードフレーズをチャットへ貼る必要はありません。
+- 任意Anchorを有効にしたSolflareブラウザの署名・チェーン記録は確認済みです。追加した学習記録の再読み込み後の表示保持もPC実機で確認済みです。公開アプリとPC Solflareの画像・名称表示も確認済みです。Seekerでも学習記録・修了証発行・画像と名称表示を確認済みです。修了証発行後のSeeker再読み込み・再接続での表示保持も確認済みです。ウォレット詳細画面の説明表示は、追加で確認できる項目です。秘密鍵・シードフレーズをチャットへ貼る必要はありません。
 
 ## 公開
 

@@ -105,12 +105,14 @@ Seekerで再試行した学習記録の署名が共有され、その後の修�
 | チェーン上URI | `https://nftlab-sim.haruharuoharu.workers.dev/api/metadata/certificate` |
 | 公開画像 | HTTP 200・image/png・800×800・37,313バイト |
 | Seekerウォレット | 11:04 JSTの実機画面で「Unverified collectibles」にNFTLab Sim修了証の画像と名称を確認 |
+| 再読み込み・再接続後 | 11:15 JSTの公開アプリ画面で同じ修了証 `A79MeUwWX8gv36GKXMk3oHNkuUzCoKKPQpmtWg1x8tEm` と記録したウォレット `B3CvizNZQxSknnE9p3WXHtd1wNVzNykGQCC8J89z6Xsa` を確認。「このウォレットに記録済み」ボタンは無効で、学習記録と取引の確認リンクも保持 |
 
 PCとSeekerで修了証の画像表示を確認しました。「Unverified collectibles」は画面上の未認証NFTの分類であり、ウォレットの分類を解除したという意味ではありません。モバイルの3教材の完了画面は確認していますが、この追加照合の対象はAnchor記録と修了証発行です。
 
-## 残る確認
+再読み込み・同じウォレットへの再接続後の表示保持もSeekerで確認しました。PCとSeekerで、公開修了証の発行・画像表示・学習記録・表示保持までの検証を完了しています。
 
-- 修了証発行後、Seekerの公開アプリを再読み込みし、同じウォレットへ再接続した際の修了証・記録済み表示の保持。
+## 追加で確認できる項目
+
 - ウォレットのNFT詳細画面の説明表示。
 
 学習記録と修了証は自己申告の教材用記録です。AnchorはCoreの取引を証明せず、CoreへのCPIも行いません。アプリはAnchor未設定の状態でもCoreのNFT体験を利用できます。再開時は既存のデプロイと検証結果を利用し、変更がない限り再ビルド・再デプロイを繰り返す必要はありません。
