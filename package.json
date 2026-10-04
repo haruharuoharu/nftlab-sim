@@ -14,7 +14,13 @@
     "test:devnet": "node --import tsx scripts/devnet-smoke.ts",
     "test:anchor": "node --import tsx scripts/anchor-smoke.ts",
     "test:chain": "bash scripts/test-local-chain.sh",
-    "check:devnet": "node --import tsx scripts/check-devnet.ts"
+    "check:devnet": "node --import tsx scripts/check-devnet.ts",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "preview:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare preview",
+    "deploy:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare deploy",
+    "dry-run:cloudflare": "wrangler deploy --dry-run",
+    "check:cloudflare": "node --import tsx scripts/check-cloudflare.mts",
+    "check:public": "node --import tsx scripts/check-public-app.mts"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-jp": "^5.3.0",
@@ -34,13 +40,15 @@
     "zod": "^4.1.0"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.8",
     "@playwright/test": "^1.63.0",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.15.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "tsx": "^4.20.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "4.147.0"
   },
   "overrides": {
     "jayson": {

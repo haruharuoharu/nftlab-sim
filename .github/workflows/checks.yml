@@ -39,6 +39,26 @@ jobs:
       - run: npm run test:db
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+  cloudflare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build Worker and exclude local environment values
+        run: |
+          printf 'NFTLAB_BUILD_CANARY=local-value-must-not-be-uploaded\n' > .env.test.local
+          npm run build:cloudflare
+      - run: npm run check:cloudflare
+      - name: Verify deployable bundle without a Cloudflare account or deployment
+        run: npm run dry-run:cloudflare
   chain:
     runs-on: ubuntu-latest
     timeout-minutes: 25

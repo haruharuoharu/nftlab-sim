@@ -37,7 +37,7 @@ http://localhost:3000 を開きます。環境変数はなくても練習モー�
 
 RPCはトランザクション前にGenesis Hashを確認し、Devnet以外を拒否します。ウォレットの拒否やRPCエラーは画面に表示し、成功確認前には進捗を進めません。**承認後に確認が中断した場合は、確認待ち取引の「取引状況を再確認」を使用してください。** 署名・NFTアドレス・操作・進捗のスナップショットを送信前にブラウザへ保存します。確認待ちの間は、新規取引と進捗リセットを停止します。成功時は同じ署名から進捗を復旧し、確定失敗時のみ再試行可能にします。履歴が取得できない場合は期限後も記録を保持します。ブラウザのデータ削除や別端末での復旧は対象外です。Web Locksによる排他制御のためHTTPSまたはlocalhostで利用してください。
 
-NFTメタデータは `/api/metadata/ticket` 等で提供します。公開運用時は `NEXT_PUBLIC_APP_URL` にHTTPSの公開URLを設定してください。localhostで発行したNFTのメタデータは外部ウォレットから読めません。公開前に再発行してください。Android/SeekerのMobile Wallet Adapter専用フローはまだ追加していません。Wallet Standard以外の互換性は実機検証が必要です。
+NFTメタデータは `/api/metadata/ticket` 等で提供し、画像は800×800のPNGです。Node.jsサーバーをリバースプロキシで公開する場合は `NEXT_PUBLIC_APP_URL` にHTTPSの公開originを設定してください。Cloudflare用ビルドでは公開リクエストのoriginを使用します。localhostで発行したNFTのURIは公開後も自動更新されず、外部ウォレットから読めません。公開URLで新しく発行したNFTの表示を検証してください。Android/SeekerのMobile Wallet Adapter専用フローはまだ追加していません。Wallet Standard以外の互換性は実機検証が必要です。
 
 PCのSolflareでの操作は [実機検証ガイド](solflare-pc-test.md) を参照してください。
 
@@ -156,7 +156,9 @@ GitHub Actionsではアプリ／DB／E2Eと、独立したAnchorビルド／ロ�
 
 ## 公開
 
-Next.jsのNode.jsサーバーとPostgreSQLが必要です。静的ファイルだけのCloudflare PagesではAPI/DBは動きません。公開URL・DB・RPCの設定が必要で、このPR自体は公開デプロイを行いません。
+Cloudflare Workers用のビルド・プレビュー・公開設定を用意しています。[Cloudflare公開手順](cloudflare-deployment.md) を参照してください。この構成はブラウザ保存を使い、DBは不要です。Devnet RPCとデプロイ済みAnchorの公開IDを使用します。公開デプロイには運用者のCloudflare認証が必要です。
+
+通常のNext.js Node.jsサーバーでの公開も可能です。PostgreSQLは同期を利用する場合だけ設定します。静的ファイルだけのCloudflare Pagesでは現在の保存APIを実行できません。
 
 ## 依存パッケージの監査
 
