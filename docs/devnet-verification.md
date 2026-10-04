@@ -60,9 +60,35 @@ IDLを取得・展開し、Program ID、権限、`nftlab_progress` v0.1.0、`rec
 
 この取引の命令はAnchorの学習記録3件のみで、Core NFTの新規発行命令はありません。CLI検証6件に実Solflareの1件を加え、Anchor記録取引は計7件を照合済みです。2026-10-04 09:18 JSTのPC実機画面で、ブラウザの再読み込み・口座Bへの再接続後も3教材の完了、同じ修了証、記録した口座Bの公開アドレス、学習記録と取引のリンクが表示されることを確認しました。追加ボタンは「このウォレットに記録済み」として無効になっており、再送信せずに保持を検証しました。
 
+## Cloudflare公開と修了証の外部表示
+
+2026-10-04 10:13 JSTに [公開アプリ](https://nftlab-sim.haruharuoharu.workers.dev) のデプロイが成功しました。Version IDは `45b6f08f-f72e-441e-8431-d9520af9afe2`、Worker startupは20ms。独立した外部環境から `npm run check:public` に成功し、画面・4種類のHTTPSメタデータ・800×800 PNGと未定義IDの404を確認しました。
+
+| 項目 | 確認結果 |
+|---|---|
+| 新規修了証 | [2FfsRyv17pSSAA8qXwiTNZB12L8Y4Lj53VSEe5FUNVmj](https://explorer.solana.com/address/2FfsRyv17pSSAA8qXwiTNZB12L8Y4Lj53VSEe5FUNVmj?cluster=devnet) |
+| 所有者 | `74Pdkr5RVm7L9brVVWWNZHdMvNUEJknqPZR4vTPXv2x5` |
+| 発行取引 | [2kqyirYm…](https://explorer.solana.com/tx/2kqyirYm8hEbaXCjU2m9PEJ3wCuqDnB1J3vU6eWT1Y68uu4NC56J8FupcS5weBirK6sCnG6Z9tG5y6rNnbxW6Z3c?cluster=devnet) |
+| 確定状態 | 10:25:34 JST・slot `507194581`、`finalized`・`err: null`。Core `CreateV2` の成功を確認 |
+| チェーン上URI | `https://nftlab-sim.haruharuoharu.workers.dev/api/metadata/certificate` |
+| 画像 | `https://nftlab-sim.haruharuoharu.workers.dev/nft-card.png`、HTTP 200・image/png・800×800・37,313バイト |
+| PC Solflare | 10:30:32 JSTの画面でMain Wallet（74Pd…v2x5）の「未認証」NFT一覧にPNG画像と修了証名を確認 |
+
+既存のlocalhost修了証のURIを更新したという意味ではありません。公開URLから新しく発行したNFTを確認しました。ウォレットの詳細画面の説明表示は未確認です。
+
+## Seekerでの署名不足と修正
+
+2026-10-04 10:43 JSTのSeeker Chrome画面は3教材を完了済みと表示しています。接続口座 `9LPLTvZTEEVyKMYaSeiVkVSfmFYsF4uxDVy8bJ3D9vnK` に対して、修了証発行前のAnchor記録で `Signature verification failed. Missing signature for public key` が発生しました。
+
+Anchorクライアントだけが未署名のlegacy `Transaction` を渡しており、インストール済みMobile Wallet Adapterはウォレットを呼ぶ前に `serialize()` を実行します。同じ条件でエラーを再現しました。クライアントを `TransactionMessage.compileToV0Message()` と `VersionedTransaction` に変更し、署名済みの同じ取引をsigVerify付きsimulation・送信前の保存・送信・確認に使用します。チェーン上の命令・PDA・Program IDの変更はなく、Anchorの再デプロイは不要です。
+
+回帰検証はモバイルと同じ署名前のserializeを実行し、署名の実データ、3命令と口座、保存と送信の順序、未署名返却やsimulation失敗の送信停止、確認中断時の元の署名の保持を確認します。ブラウザE2Eもv0取引を復号し、Ed25519署名と3命令を検査します。公開修正版でのSeeker実機の成功は未確認です。
+
+参考: [Mobile Wallet Adapterの同じlegacy署名エラー報告](https://github.com/solana-mobile/mobile-wallet-adapter/issues/1371)、[Solanaのv0取引構築](https://solana.com/developers/cookbook/transactions/versions)。
+
 ## 残る確認
 
-- 公開アプリとHTTPSメタデータの外部表示。今回のCore NFTのURIはlocalhostのため、外部ウォレットから取得できません。
-- Android/Seeker実機のウォレット署名フロー。
+- 修正した公開アプリで、Seekerの既存進捗からAnchor記録と修了証NFT発行を再試行し、署名・確定・画像表示を確認。
+- PC SolflareのNFT詳細画面の説明表示。
 
 学習記録と修了証は自己申告の教材用記録です。AnchorはCoreの取引を証明せず、CoreへのCPIも行いません。アプリはAnchor未設定の状態でもCoreのNFT体験を利用できます。再開時は既存のデプロイと検証結果を利用し、変更がない限り再ビルド・再デプロイを繰り返す必要はありません。

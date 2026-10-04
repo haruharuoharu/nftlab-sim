@@ -37,7 +37,7 @@ http://localhost:3000 を開きます。環境変数はなくても練習モー�
 
 RPCはトランザクション前にGenesis Hashを確認し、Devnet以外を拒否します。ウォレットの拒否やRPCエラーは画面に表示し、成功確認前には進捗を進めません。**承認後に確認が中断した場合は、確認待ち取引の「取引状況を再確認」を使用してください。** 署名・NFTアドレス・操作・進捗のスナップショットを送信前にブラウザへ保存します。確認待ちの間は、新規取引と進捗リセットを停止します。成功時は同じ署名から進捗を復旧し、確定失敗時のみ再試行可能にします。履歴が取得できない場合は期限後も記録を保持します。ブラウザのデータ削除や別端末での復旧は対象外です。Web Locksによる排他制御のためHTTPSまたはlocalhostで利用してください。
 
-NFTメタデータは `/api/metadata/ticket` 等で提供し、画像は800×800のPNGです。Node.jsサーバーをリバースプロキシで公開する場合は `NEXT_PUBLIC_APP_URL` にHTTPSの公開originを設定してください。Cloudflare用ビルドでは公開リクエストのoriginを使用します。localhostで発行したNFTのURIは公開後も自動更新されず、外部ウォレットから読めません。公開URLで新しく発行したNFTの表示を検証してください。Android/SeekerのMobile Wallet Adapter専用フローはまだ追加していません。Wallet Standard以外の互換性は実機検証が必要です。
+NFTメタデータは `/api/metadata/ticket` 等で提供し、画像は800×800のPNGです。Node.jsサーバーをリバースプロキシで公開する場合は `NEXT_PUBLIC_APP_URL` にHTTPSの公開originを設定してください。Cloudflare用ビルドでは公開リクエストのoriginを使用します。localhostで発行したNFTのURIは公開後も自動更新されず、外部ウォレットから読めません。公開URLで新しく発行したNFTの表示を検証してください。WalletProviderはAndroidのモバイルブラウザでMobile Wallet Adapterを自動追加します。学習完了のAnchor記録も署名前に送信データへ変換できるv0取引を使用します。Seekerで見つかった旧形式の署名不足エラーを修正し、署名前の変換・署名検査・保存と送信の順序を回帰検証しています。公開更新後のSeeker実機で修了証を再試行する確認は残っています。
 
 PCのSolflareでの操作は [実機検証ガイド](solflare-pc-test.md) を参照してください。
 
@@ -142,8 +142,8 @@ npm run test:chain
 - Devnet Core実取引: PCのSolflareで3シナリオの発行・譲渡・利用と修了証発行を完了。10取引すべて `finalized`・`err: null`、修了証の所有者と再読み込み後の進捗保持も確認済み。
 - 独自AnchorのDevnetデプロイ・検証: ユーザーのPCからデプロイ成功。RPCで実行可能状態、更新権限、ELF、IDLを確認。`test:anchor` の9項目に成功し、6件の記録取引すべて `finalized`・`err: null`、3つの学習記録が完了ビット `7` と完了日時を保持することを照合済み。[詳細と署名](devnet-verification.md)。
 - 任意AnchorのSolflare PC実機: 発行済み修了証から口座Bで学習完了を追加し、1取引で教材0・1・2を記録。`finalized`・`err: null`、署名者・PDA・所有プログラム・完了ビット `7`・完了日時をRPCで照合済み。追加後の再読み込み・口座Bへの再接続後も、学習完了・修了証・「このウォレットに記録済み」の表示をPC実機で確認済み。[取引とアカウント](devnet-verification.md#solflareブラウザからのanchor記録)。
-- 公開アプリ・外部ウォレットのメタデータ表示: 未検証。実機で発行したNFTのURIはlocalhost。
-- Android/Seeker実機: 未実施。
+- 公開アプリ・外部ウォレットのメタデータ表示: HTTPSメタデータとPNG取得、公開URLから新規発行した修了証、PC Solflareの画像・名称表示を確認済み。詳細は [Devnet検証結果](devnet-verification.md#cloudflare公開と修了証の外部表示)。
+- Android/Seeker実機: 接続後の画面で3/3完了を確認。修了証発行前のAnchor記録が旧形式の署名不足で停止。v0取引への修正後の実機再試行は未完了。
 
 GitHub Actionsではアプリ／DB／E2Eと、独立したAnchorビルド／ローカルチェーンのジョブを実行します。アプリジョブは任意Anchorの公開Program IDを設定して画面をビルドし、モックRPCで署名から保存・復旧を検証します。実Devnetへは送信しません。DevnetのFaucet・署名鍵はCIへ保存しません。
 
@@ -152,7 +152,7 @@ GitHub Actionsではアプリ／DB／E2Eと、独立したAnchorビルド／ロ�
 - [PR #1](https://github.com/haruharuoharu/nftlab-sim/pull/1) と現在のHEAD・CIを確認します。画面実装 `b915c24` の [CI run 37162868294](https://github.com/haruharuoharu/nftlab-sim/actions/runs/37162868294) はapp・chainとも成功済みです（単体22件・E2E16件）。
 - 2026-10-04 JSTにPCでAnchor再ビルド、ローカルチェーン、Devnetデプロイ、Devnetの `test:anchor` まで完了しました。完了済みの検証を再開のためだけに繰り返す必要はありません。
 - `check:devnet` は公開アドレスだけで読み取り確認できます。署名鍵やFaucetを使いません。検証済みのProgram IDと取引・学習記録は [Devnet検証結果](devnet-verification.md) を参照してください。
-- 任意Anchorを有効にしたSolflareブラウザの署名・チェーン記録は確認済みです。追加した学習記録の再読み込み後の表示保持もPC実機で確認済みです。残作業は公開アプリとメタデータの外部表示、およびAndroid/Seeker実機です。秘密鍵・シードフレーズをチャットへ貼る必要はありません。
+- 任意Anchorを有効にしたSolflareブラウザの署名・チェーン記録は確認済みです。追加した学習記録の再読み込み後の表示保持もPC実機で確認済みです。公開アプリとPC Solflareの画像・名称表示も確認済みです。残作業はSeekerの署名不足修正の再デプロイ後の実機確認、およびウォレット詳細画面の説明表示です。秘密鍵・シードフレーズをチャットへ貼る必要はありません。
 
 ## 公開
 

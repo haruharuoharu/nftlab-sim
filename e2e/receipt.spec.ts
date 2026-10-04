@@ -1,5 +1,6 @@
 import { test, expect, type Route } from '@playwright/test';
-import { Keypair, PublicKey, Transaction } from '@solana/web3.js';
+import { Keypair, PublicKey, VersionedTransaction } from '@solana/web3.js';
+import { createPublicKey, verify } from 'node:crypto';
 import bs58 from 'bs58';
 import type { Progress } from '../lib/scenarios';
 import { JOURNAL_KEY } from '../lib/transaction-journal';
@@ -48,11 +49,14 @@ test('an issued certificate can add a signed receipt without another NFT mint', 
       case 'getLatestBlockhash': result = { context: { slot: 100 }, value: { blockhash: '11111111111111111111111111111111', lastValidBlockHeight: 500 } };break;
       case 'simulateTransaction': result = { context: { slot: 100 }, value: { err: null, logs: [], unitsConsumed: 1000 } };break;
       case 'sendTransaction': {
-        const transaction = Transaction.from(Buffer.from(request.params[0], 'base64'));
-        expect(transaction.verifySignatures()).toBe(true);expect(transaction.instructions).toHaveLength(3);
-        expect(transaction.instructions.every(ix => ix.programId.toBase58() === programId)).toBe(true);
+        const transaction = VersionedTransaction.deserialize(Buffer.from(request.params[0], 'base64'));
+        expect(transaction.version).toBe(0);expect(transaction.message.compiledInstructions).toHaveLength(3);
+        const key = createPublicKey({ key: Buffer.concat([Buffer.from('302a300506032b6570032100', 'hex'), learner.publicKey.toBuffer()]), format: 'der', type: 'spki' });
+        expect(verify(null, transaction.message.serialize(), key, transaction.signatures[0])).toBe(true);
+        const keys = transaction.message.getAccountKeys();
+        expect(transaction.message.compiledInstructions.every(ix => keys.get(ix.programIdIndex)!.toBase58() === programId)).toBe(true);
         const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), JOURNAL_KEY);
-        const signature = bs58.encode(transaction.signature!);expect(saved.signature).toBe(signature);expect(saved.programId).toBe(programId);
+        const signature = bs58.encode(transaction.signatures[0]);expect(saved.signature).toBe(signature);expect(saved.programId).toBe(programId);
         expect(saved.before.certificate).toEqual(completed.certificate);savedBeforeSend = true;result = signature;break;
       }
       case 'getBlockHeight': result = 100;break;

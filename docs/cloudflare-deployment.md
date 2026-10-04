@@ -2,6 +2,10 @@
 
 Next.js 16の既存アプリをOpenNextでWorkers用にビルドします。PCで検証済みのAnchorはそのまま利用します。この手順でAnchorの再ビルド・再デプロイは行いません。
 
+## 現在の公開状態
+
+2026-10-04 10:13 JSTに [NFTLab Sim](https://nftlab-sim.haruharuoharu.workers.dev) を公開済みです。画面・4種類のHTTPSメタデータ・800×800 PNGの取得、公開URLからの修了証発行、PC Solflareの画像・名称表示を確認しています（[検証記録](devnet-verification.md#cloudflare公開と修了証の外部表示)）。既存の公開環境は同じURLへの再デプロイで更新できます。
+
 ## 構成
 
 - `nftlab-sim` というWorkerを `workers.dev` のHTTPS URLで公開します。
@@ -51,7 +55,7 @@ npm run check:public -- https://nftlab-sim.YOUR_SUBDOMAIN.workers.dev
 
 localhostと公開URLではブラウザ保存領域が別です。PCの既存の3/3の進捗・修了証は自動移行しません。既存の修了証NFTやAnchorの学習記録はDevnet上に残ります。localhostで発行済みの修了証のURIは元のままで、公開しても外部ウォレットから読めるURIに自動更新されません。
 
-Android/Seekerの専用Mobile Wallet Adapterフローと実機検証は別の残作業です。
+Android/SeekerではWalletProviderのMobile Wallet Adapterが使用されます。修了証発行前のAnchor記録はv0取引で署名します。旧公開版で「Missing signature for public key」が出た場合は、修正版をPCから同じWorkerへデプロイし、SeekerのChromeで再読み込み・同じウォレットへの再接続後に「修了証を発行」を再試行します。学習進捗をリセットしたり、ブラウザの保存データを削除したりする必要はありません。確認待ち取引がある場合は先に「取引状況を再確認」を使います。実機での署名・発行完了は更新後の確認事項です。
 
 ## 公開せずに検証する
 
