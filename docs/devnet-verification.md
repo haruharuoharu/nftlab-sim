@@ -82,13 +82,35 @@ IDLを取得・展開し、Program ID、権限、`nftlab_progress` v0.1.0、`rec
 
 Anchorクライアントだけが未署名のlegacy `Transaction` を渡しており、インストール済みMobile Wallet Adapterはウォレットを呼ぶ前に `serialize()` を実行します。同じ条件でエラーを再現しました。クライアントを `TransactionMessage.compileToV0Message()` と `VersionedTransaction` に変更し、署名済みの同じ取引をsigVerify付きsimulation・送信前の保存・送信・確認に使用します。チェーン上の命令・PDA・Program IDの変更はなく、Anchorの再デプロイは不要です。
 
-回帰検証はモバイルと同じ署名前のserializeを実行し、署名の実データ、3命令と口座、保存と送信の順序、未署名返却やsimulation失敗の送信停止、確認中断時の元の署名の保持を確認します。ブラウザE2Eもv0取引を復号し、Ed25519署名と3命令を検査します。公開修正版でのSeeker実機の成功は未確認です。
+回帰検証はモバイルと同じ署名前のserializeを実行し、署名の実データ、3命令と口座、保存と送信の順序、未署名返却やsimulation失敗の送信停止、確認中断時の元の署名の保持を確認します。ブラウザE2Eもv0取引を復号し、Ed25519署名と3命令を検査します。修正版 `d90d935` のCIは単体25件・E2E16件とcloudflare・chainの3ジョブすべて成功しました。公開修正版でのSeeker実機結果は下記のとおりです。
 
 参考: [Mobile Wallet Adapterの同じlegacy署名エラー報告](https://github.com/solana-mobile/mobile-wallet-adapter/issues/1371)、[Solanaのv0取引構築](https://solana.com/developers/cookbook/transactions/versions)。
 
+## Seeker公開修正の実機結果
+
+2026-10-04 10:59 JSTに修正版を同じ公開URLへデプロイしました。Version IDは `adda1736-6294-4389-8e30-ca3f1b34ea47`、Worker startupは21ms。公開中のAnchorクライアント `_next/static/chunks/2rfoqkc1dozet.js` がローカルの `d90d935` ビルドと全バイト一致することを外部HTTP取得で確認しました（SHA-256 `24b5fc1fb9b19801d641e32fcf09716db0f612b77d64319ced7db8bfb2d30797`）。画面・4種類のメタデータ・PNG・未定義IDの404の読み取り確認も成功しました。
+
+Seekerで再試行した学習記録の署名が共有され、その後の修了証発行までDevnet RPCで照合しました。旧エラー画面の署名不足の口座は9LPL…9vnKですが、成功した記録と修了証の署名者・所有者は以下のB3Cv…6Xsaです。
+
+| 項目 | 確認結果 |
+|---|---|
+| 学習者・修了証所有者 | `B3CvizNZQxSknnE9p3WXHtd1wNVzNykGQCC8J89z6Xsa` |
+| Anchor記録取引 | [5gnEsHRB…](https://explorer.solana.com/tx/5gnEsHRBqH7yJqW8bCn8177z3gwkY8gTZeApecr8tQyXmhxoRLdaqVAfW37ZTDsKbvWVC5EX1CGNMtd3xipvetf5?cluster=devnet) |
+| Anchor確定状態 | 11:01:05 JST・slot `507203660`・version 0、`finalized`・`err: null`。3教材の記録に成功 |
+| 学習記録PDA | [HAzRx62j6CerDvRHGcHMEHo4bdVnsXwbvLyVae7DFcGx](https://explorer.solana.com/address/HAzRx62j6CerDvRHGcHMEHo4bdVnsXwbvLyVae7DFcGx?cluster=devnet) |
+| 記録内容 | 50バイト、所有プログラムとdiscriminator・学習者公開鍵が一致。完了ビット `7`、完了時刻 `1791079265` |
+| 修了証発行取引 | [5zxpVrZB…](https://explorer.solana.com/tx/5zxpVrZB1cNzdRGkdhi7Nc2uMNtzDJEY8VdrGvVENNvDZR6naSYHKeJC2AfraNWs3PNGir79uKBLLwCysRedYH7u?cluster=devnet) |
+| 発行確定状態 | 11:01:23 JST・slot `507203736`・version 0、`finalized`・`err: null`。Core `CreateV2` 成功 |
+| 修了証NFT | [A79MeUwWX8gv36GKXMk3oHNkuUzCoKKPQpmtWg1x8tEm](https://explorer.solana.com/address/A79MeUwWX8gv36GKXMk3oHNkuUzCoKKPQpmtWg1x8tEm?cluster=devnet) |
+| チェーン上URI | `https://nftlab-sim.haruharuoharu.workers.dev/api/metadata/certificate` |
+| 公開画像 | HTTP 200・image/png・800×800・37,313バイト |
+| Seekerウォレット | 11:04 JSTの実機画面で「Unverified collectibles」にNFTLab Sim修了証の画像と名称を確認 |
+
+PCとSeekerで修了証の画像表示を確認しました。「Unverified collectibles」は画面上の未認証NFTの分類であり、ウォレットの分類を解除したという意味ではありません。モバイルの3教材の完了画面は確認していますが、この追加照合の対象はAnchor記録と修了証発行です。
+
 ## 残る確認
 
-- 修正した公開アプリで、Seekerの既存進捗からAnchor記録と修了証NFT発行を再試行し、署名・確定・画像表示を確認。
-- PC SolflareのNFT詳細画面の説明表示。
+- 修了証発行後、Seekerの公開アプリを再読み込みし、同じウォレットへ再接続した際の修了証・記録済み表示の保持。
+- ウォレットのNFT詳細画面の説明表示。
 
 学習記録と修了証は自己申告の教材用記録です。AnchorはCoreの取引を証明せず、CoreへのCPIも行いません。アプリはAnchor未設定の状態でもCoreのNFT体験を利用できます。再開時は既存のデプロイと検証結果を利用し、変更がない限り再ビルド・再デプロイを繰り返す必要はありません。
