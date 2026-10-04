@@ -141,7 +141,7 @@ npm run test:chain
 - Core: Devnetから読み取った実プログラムをローカルチェーンで実行し、3シナリオの発行・譲渡・返送・消費、所有者検査、所有者以外の消費拒否、修了証の発行に成功（基本フローは送金を含む14取引）。追加の障害テストはチェーンで発行成功後に確認応答を失い、保存署名から復旧するケースと、保存失敗時に送信しないケースにも成功（復旧用の発行・消費を含め計16取引）。読み取り・preflight・確認を `confirmed` に統一。
 - Devnet Core実取引: PCのSolflareで3シナリオの発行・譲渡・利用と修了証発行を完了。10取引すべて `finalized`・`err: null`、修了証の所有者と再読み込み後の進捗保持も確認済み。
 - 独自AnchorのDevnetデプロイ・検証: ユーザーのPCからデプロイ成功。RPCで実行可能状態、更新権限、ELF、IDLを確認。`test:anchor` の9項目に成功し、6件の記録取引すべて `finalized`・`err: null`、3つの学習記録が完了ビット `7` と完了日時を保持することを照合済み。[詳細と署名](devnet-verification.md)。
-- 任意AnchorのSolflare PC実機: 発行済み修了証から口座Bで学習完了を追加し、1取引で教材0・1・2を記録。`finalized`・`err: null`、署名者・PDA・所有プログラム・完了ビット `7`・完了日時をRPCで照合済み。追加後の再読み込みによる画面の保持は実機確認待ち。[取引とアカウント](devnet-verification.md#solflareブラウザからのanchor記録)。
+- 任意AnchorのSolflare PC実機: 発行済み修了証から口座Bで学習完了を追加し、1取引で教材0・1・2を記録。`finalized`・`err: null`、署名者・PDA・所有プログラム・完了ビット `7`・完了日時をRPCで照合済み。追加後の再読み込み・口座Bへの再接続後も、学習完了・修了証・「このウォレットに記録済み」の表示をPC実機で確認済み。[取引とアカウント](devnet-verification.md#solflareブラウザからのanchor記録)。
 - 公開アプリ・外部ウォレットのメタデータ表示: 未検証。実機で発行したNFTのURIはlocalhost。
 - Android/Seeker実機: 未実施。
 
@@ -152,7 +152,7 @@ GitHub Actionsではアプリ／DB／E2Eと、独立したAnchorビルド／ロ�
 - [PR #1](https://github.com/haruharuoharu/nftlab-sim/pull/1) と現在のHEAD・CIを確認します。画面実装 `b915c24` の [CI run 37162868294](https://github.com/haruharuoharu/nftlab-sim/actions/runs/37162868294) はapp・chainとも成功済みです（単体22件・E2E16件）。
 - 2026-10-04 JSTにPCでAnchor再ビルド、ローカルチェーン、Devnetデプロイ、Devnetの `test:anchor` まで完了しました。完了済みの検証を再開のためだけに繰り返す必要はありません。
 - `check:devnet` は公開アドレスだけで読み取り確認できます。署名鍵やFaucetを使いません。検証済みのProgram IDと取引・学習記録は [Devnet検証結果](devnet-verification.md) を参照してください。
-- 任意Anchorを有効にしたSolflareブラウザの署名・チェーン記録は確認済みです。残作業は追加した学習記録の再読み込み後の表示保持、公開アプリとメタデータの外部表示、およびAndroid/Seeker実機です。秘密鍵・シードフレーズをチャットへ貼る必要はありません。
+- 任意Anchorを有効にしたSolflareブラウザの署名・チェーン記録は確認済みです。追加した学習記録の再読み込み後の表示保持もPC実機で確認済みです。残作業は公開アプリとメタデータの外部表示、およびAndroid/Seeker実機です。秘密鍵・シードフレーズをチャットへ貼る必要はありません。
 
 ## 公開
 
