@@ -75,7 +75,7 @@ Built for the Colosseum hackathon.
 
 ## v0.1 implementation
 
-The repository now includes a Japanese Next.js learning app with three quiz-gated scenarios, browser simulation, Solana Devnet Metaplex Core mint/transfer/burn operations, and shareable completion certificates. Progress uses browser storage with optional PostgreSQL synchronization.
+The repository now includes a Japanese/English Next.js learning app with three quiz-gated scenarios, browser simulation, Solana Devnet Metaplex Core mint/transfer/burn operations, and shareable completion certificates. Progress uses browser storage with optional PostgreSQL synchronization.
 
 ```sh
 npm ci
@@ -84,6 +84,8 @@ npm run dev
 ```
 
 Open http://localhost:3000. No wallet or database is required for simulation mode.
+
+Use **日本語 / English** in the header to switch lessons, quizzes, wallet guidance, app messages, and certificate sharing text. The choice is saved in this browser; `?lang=en` or `?lang=ja` overrides the saved preference for a shared link. Language switches preserve answers, progress, certificates, and pending transactions. Wallet apps and their third-party dialogs use their own language settings. On-chain NFT names and existing metadata URIs are independent of the UI language.
 
 See [development and verification guide](docs/development.md) for Devnet wallet setup, PostgreSQL schema, optional Anchor learning receipts, validation commands, and current limitations. Existing pitch materials describe the original concept; the guide describes the implementation.
 
