@@ -62,7 +62,7 @@ test('English Devnet recovery and certificate survive switching without sends', 
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await page.getByRole('button', { name: 'Try on Devnet', exact: false }).click();
   await expect(page.getByText('Could not read the pending transaction record. New transactions are paused.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Share certificate', exact: false })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Share certificate', exact: false })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Reset progress' })).toBeDisabled();
   const saved = await page.evaluate(key => ({ progress: localStorage.getItem('nftlab-v1-devnet'), journal: localStorage.getItem(key) }), JOURNAL_KEY);
   await page.getByRole('button', { name: '日本語', exact: true }).click();
