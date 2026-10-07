@@ -83,7 +83,7 @@ async function setup(page: Page, context: BrowserContext, options: { faucetFails
 async function connect(page: Page, locale: Locale, selected = false) {
   const t = (s: string) => translate(locale, s);
   if (!selected) { await page.getByRole('button', { name: t('ウォレットを選択') }).click();await page.getByRole('button', { name: 'NFTLab Beginner Wallet', exact: false }).click(); }
-  await page.getByRole('button', { name: locale === 'en' ? 'Connect NFTLab Beginner Wallet' : 'NFTLab Beginner Walletを接続', exact: true }).click();
+  await page.getByRole('button', { name: locale === 'en' ? 'Connect NFTLab Beginner Wallet' : 'NFTLab Beginner Walletを接続' }).click();
 }
 for (const locale of ['ja', 'en'] as const) {
   const t = (s: string) => translate(locale, s);
