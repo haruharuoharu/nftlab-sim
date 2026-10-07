@@ -3,7 +3,7 @@ import { base58 } from '@metaplex-foundation/umi/serializers';
 import type { TransactionObserver } from './transaction-journal';
 
 export async function sendNftTransaction(umi: Umi, builder: TransactionBuilder,
-  effect: { asset: string; owner: string }, observe?: TransactionObserver) {
+  effect: { asset: string; owner: string; practicePartner?: string }, observe?: TransactionObserver) {
   const blockhash = await umi.rpc.getLatestBlockhash({ commitment: 'confirmed' });
   const transaction = await builder.setBlockhash(blockhash).buildAndSign(umi);
   const signature = base58.deserialize(transaction.signatures[0])[0];

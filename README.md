@@ -77,6 +77,8 @@ Built for the Colosseum hackathon.
 
 The repository now includes a Japanese/English Next.js learning app with three quiz-gated scenarios, browser simulation, Solana Devnet Metaplex Core mint/transfer/burn operations, and shareable completion certificates. Progress uses browser storage with optional PostgreSQL synchronization.
 
+Devnet onboarding explains the practice network and test tokens. On wallet connection, a balance below 0.05 test SOL triggers a best-effort request for 0.5 test SOL, with a persisted 10-minute cooldown and official faucet fallback. The default transfer activity sends to an ephemeral practice partner and back in one atomic transaction, so learners can mint, transfer, and redeem using one wallet. A separate-wallet transfer option remains available. These additions support Japanese and English.
+
 ```sh
 npm ci
 cp .env.example .env.local

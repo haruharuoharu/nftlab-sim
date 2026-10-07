@@ -44,7 +44,7 @@ test('an issued certificate can add a signed receipt without another NFT mint', 
     const request = route.request().postDataJSON();calls.push(request.method);let result: unknown;
     switch (request.method) {
       case 'getGenesisHash': result = 'EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG';break;
-      case 'getBalance': result = { context: { slot: 100 }, value: 10_000_000 };break;
+      case 'getBalance': result = { context: { slot: 100 }, value: 100_000_000 };break;
       case 'getAccountInfo': result = { context: { slot: 100 }, value: { data: ['', 'base64'], executable: true, lamports: 1, owner: 'BPFLoaderUpgradeab1e11111111111111111111111', rentEpoch: 0 } };break;
       case 'getLatestBlockhash': result = { context: { slot: 100 }, value: { blockhash: '11111111111111111111111111111111', lastValidBlockHeight: 500 } };break;
       case 'simulateTransaction': result = { context: { slot: 100 }, value: { err: null, logs: [], unitsConsumed: 1000 } };break;

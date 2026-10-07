@@ -24,3 +24,16 @@ export async function redeemAsset(umi:Umi,address:string,observe?:TransactionObs
  const signature=await sendNftTransaction(umi,burn(umi,{asset}),{asset:address,owner:String(umi.identity.publicKey)},observe);
  return {owner:String(umi.identity.publicKey),signature};
 }
+
+// Both transfers land atomically: the learner never loses an NFT to a helper
+// whose key could disappear on reload. Only its public address is journaled.
+export async function practiceTransferAsset(umi:Umi,address:string,observe?:TransactionObserver){
+ const asset=await fetchAsset(umi,publicKey(address));
+ if(asset.owner!==umi.identity.publicKey)throw new Error('このウォレットはNFTの所有者ではありません。');
+ const partner=generateSigner(umi);
+ const effect={asset:address,owner:String(umi.identity.publicKey),practicePartner:String(partner.publicKey)};
+ const builder=transfer(umi,{asset,newOwner:partner.publicKey,authority:umi.identity})
+  .add(transfer(umi,{asset:{...asset,owner:partner.publicKey},newOwner:umi.identity.publicKey,authority:partner}));
+ const signature=await sendNftTransaction(umi,builder,effect,observe);
+ return {...effect,signature};
+}

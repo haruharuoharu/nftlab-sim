@@ -109,3 +109,14 @@ test('an incomplete receipt snapshot cannot clear its pending journal', () => {
   assert.throws(() => commitConfirmed(store, record.before, record), /学習完了の記録/);
   assert.equal(readPending(store)!.signature, record.signature);
 });
+
+test('practice transfer recovery retains the learner as owner and the public partner address', () => {
+  const before = advance(advance(freshProgress(), 'ticket', 'unlock'), 'ticket', 'mint', { asset, owner: asset });
+  const record: PendingTransaction = { ...pending(before), action: 'transfer', practicePartner: '3'.repeat(32) };
+  const store = storage();savePending(store, record);
+  const restored = commitConfirmed(store, freshProgress(), readPending(store)!);
+  assert.equal(restored.records.ticket.stage, 'transferred');assert.equal(restored.records.ticket.owner, asset);
+  assert.equal(restored.records.ticket.practicePartner, record.practicePartner);assert.equal(readPending(store), null);
+  assert.deepEqual(applyConfirmed(restored, record), restored);
+  assert.equal(advance(restored, 'ticket', 'redeem').records.ticket.practicePartner, record.practicePartner);
+});

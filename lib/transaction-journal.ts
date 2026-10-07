@@ -8,7 +8,7 @@ const schema = z.object({
   version: z.literal(1), id: z.string().uuid(),
   scope: z.enum(['ticket', 'loyalty', 'membership', 'certificate']),
   action: z.enum(['mint', 'transfer', 'redeem', 'receipt']),
-  asset: address, owner: address, signer: address, programId: address.optional(),
+  asset: address, owner: address, signer: address, programId: address.optional(), practicePartner: address.optional(),
   signature: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{64,88}$/),
   blockhash: address, lastValidBlockHeight: z.number().int().nonnegative(),
   createdAt: z.string().datetime(), before: progressSchema,
@@ -16,7 +16,7 @@ const schema = z.object({
   ? ['mint', 'receipt'].includes(record.action) : record.action !== 'receipt');
 export type PendingTransaction = z.infer<typeof schema>;
 export type PreparedTransaction = Pick<PendingTransaction,
-  'asset' | 'owner' | 'signer' | 'signature' | 'blockhash' | 'lastValidBlockHeight'>;
+  'asset' | 'owner' | 'signer' | 'signature' | 'blockhash' | 'lastValidBlockHeight' | 'practicePartner'>;
 export type TransactionObserver = (transaction: PreparedTransaction) => void;
 export type JournalStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
@@ -73,7 +73,7 @@ export function applyConfirmed(current: Progress, pending: PendingTransaction): 
   const next = { mint: 'minted', transfer: 'transferred', redeem: 'redeemed' } as const;
   if (stages.indexOf(record.stage) >= stages.indexOf(next[pending.action])) return restored;
   return advance(restored, pending.scope, pending.action,
-    { asset: pending.asset, owner: pending.owner, signature: pending.signature });
+    { asset: pending.asset, owner: pending.owner, signature: pending.signature, ...(pending.practicePartner ? { practicePartner: pending.practicePartner } : {}) });
 }
 
 // Persist progress first. If either write fails, retain the journal so recovery

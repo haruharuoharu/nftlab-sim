@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { Connection, Keypair, LAMPORTS_PER_SOL, SystemProgram, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
 import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import { walletAdapterIdentity } from '@metaplex-foundation/umi-signer-wallet-adapters';
-import { mintAsset, transferAsset, redeemAsset } from '../lib/nft-operations';
+import { mintAsset, transferAsset, redeemAsset, practiceTransferAsset } from '../lib/nft-operations';
 import type { WalletContextState } from '@solana/wallet-adapter-react';
-import { fetchAsset, mplCore } from '@metaplex-foundation/mpl-core';
+import { fetchAsset, mplCore, MPL_CORE_PROGRAM_ID } from '@metaplex-foundation/mpl-core';
 import { publicKey } from '@metaplex-foundation/umi';
 import { devnetClient, mintNft, transferNft, redeemNft } from '../lib/devnet';
 import { loadTestKey, requireTestNetwork, testWallet } from './test-wallet';
@@ -49,6 +49,18 @@ async function main() {
     const returned = await transfer(endpoint, walletB, minted.asset, payer.publicKey.toBase58());
     signatures.push({ action: `${scenario}: return`, asset: minted.asset, ...returned });
     console.log('Return confirmed:', minted.asset);
+    const practiced = await practiceTransferAsset(umi, minted.asset);
+    assert.equal(practiced.owner, payer.publicKey.toBase58());
+    assert.notEqual(practiced.practicePartner, practiced.owner);
+    assert.equal((await fetchAsset(umi, publicKey(minted.asset))).owner, publicKey(practiced.owner));
+    const practiceTx = await connection.getTransaction(practiced.signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+    assert.ok(practiceTx);assert.equal(practiceTx.meta!.err, null);
+    const keys = practiceTx.transaction.message.getAccountKeys();
+    assert.equal(practiceTx.transaction.message.compiledInstructions.filter(ix => keys.get(ix.programIdIndex)!.toBase58() === MPL_CORE_PROGRAM_ID).length, 2, 'One transaction must contain both Core transfers');
+    assert.equal(practiceTx.transaction.message.header.numRequiredSignatures, 2);
+    assert.equal(keys.get(1)!.toBase58(), practiced.practicePartner);
+    signatures.push({ action: `${scenario}: practice transfer and return`, ...practiced });
+    await assert.rejects(practiceTransferAsset(await client(walletB), minted.asset), /所有者/);
     const redeemed = await redeem(endpoint, walletA, minted.asset);
     const burnt = await umi.rpc.getAccount(publicKey(minted.asset));
     assert.ok(!burnt.exists || burnt.data[0] === 0, 'Burnt asset must be closed or Uninitialized');
@@ -80,6 +92,17 @@ async function main() {
     assert.equal(recovered.records.ticket.asset, pending.asset);
     assert.equal(storage.getItem(JOURNAL_KEY), null);
     signatures.push({ action: 'recovery: confirmed mint after timeout', signature: pending.signature, asset: pending.asset });
+    umi.rpc.confirmTransaction = async (...args) => { await originalConfirm(...args);throw new Error('injected confirmation timeout'); };
+    try {
+      await assert.rejects(practiceTransferAsset(umi, pending.asset, prepared => {
+        savePending(storage, { ...prepared, version: 1, id: crypto.randomUUID(), scope: 'ticket', action: 'transfer', createdAt: new Date().toISOString(), before: recovered });
+      }), /injected confirmation timeout/);
+    } finally { umi.rpc.confirmTransaction = originalConfirm; }
+    const roundtrip = readPending(storage)!;
+    assert.equal((await fetchAsset(umi, publicKey(pending.asset))).owner, publicKey(payer.publicKey.toBase58()));
+    const afterPractice = commitConfirmed(storage, recovered, roundtrip);
+    assert.equal(afterPractice.records.ticket.stage, 'transferred');assert.equal(afterPractice.records.ticket.practicePartner, roundtrip.practicePartner);
+    signatures.push({ action: 'recovery: practice transfer after timeout', signature: roundtrip.signature, asset: pending.asset });
     const burnt = await redeemAsset(umi, pending.asset);
     signatures.push({ action: 'recovery: cleanup', ...burnt, asset: pending.asset });
     let unsent: string | undefined;
@@ -88,6 +111,12 @@ async function main() {
     }), /injected storage failure/);
     assert.ok(unsent);
     assert.equal((await umi.rpc.getAccount(publicKey(unsent))).exists, false, 'Storage failure must not broadcast the signed mint');
+    let sends = 0;const originalSend = umi.rpc.sendTransaction;
+    umi.rpc.sendTransaction = async (...args) => { sends++;return originalSend(...args); };
+    try {
+      await assert.rejects(practiceTransferAsset(umi, certificate.asset, () => { throw new Error('injected storage failure'); }), /injected storage failure/);
+      assert.equal(sends, 0, 'Storage failure must prevent both practice transfers');
+    } finally { umi.rpc.sendTransaction = originalSend; }
     console.log('Confirmed recovery and storage-failure checks passed on local chain.');
   }
   console.log(JSON.stringify({ network: local ? 'localnet (Core cloned from Devnet)' : 'devnet', payer: payer.publicKey.toBase58(), signatures }, null, 2));

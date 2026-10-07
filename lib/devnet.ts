@@ -1,7 +1,7 @@
 import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import { walletAdapterIdentity } from '@metaplex-foundation/umi-signer-wallet-adapters';
 import { mplCore } from '@metaplex-foundation/mpl-core';
-import { mintAsset, transferAsset, redeemAsset } from './nft-operations';
+import { mintAsset, transferAsset, redeemAsset, practiceTransferAsset } from './nft-operations';
 import { Connection } from '@solana/web3.js';
 import type { WalletContextState } from '@solana/wallet-adapter-react';
 import type { TransactionObserver } from './transaction-journal';
@@ -20,4 +20,7 @@ export async function transferNft(endpoint:string,wallet:WalletContextState,addr
 }
 export async function redeemNft(endpoint:string,wallet:WalletContextState,address:string,observe?:TransactionObserver){
  return redeemAsset(await devnetClient(endpoint,wallet),address,observe);
+}
+export async function practiceTransferNft(endpoint:string,wallet:WalletContextState,address:string,observe?:TransactionObserver){
+ return practiceTransferAsset(await devnetClient(endpoint,wallet),address,observe);
 }
