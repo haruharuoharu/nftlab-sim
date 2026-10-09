@@ -1,0 +1,58 @@
+{
+  "name": "nftlab-sim",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:db": "node --import tsx --test tests/database.test.mts",
+    "test:e2e": "playwright test",
+    "audit": "npm audit --omit=dev --audit-level=high",
+    "test:devnet": "node --import tsx scripts/devnet-smoke.ts",
+    "test:anchor": "node --import tsx scripts/anchor-smoke.ts",
+    "test:chain": "bash scripts/test-local-chain.sh",
+    "check:devnet": "node --import tsx scripts/check-devnet.ts",
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "preview:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare preview",
+    "deploy:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare deploy",
+    "dry-run:cloudflare": "wrangler deploy --dry-run",
+    "check:cloudflare": "node --import tsx scripts/check-cloudflare.mts",
+    "check:public": "node --import tsx scripts/check-public-app.mts"
+  },
+  "dependencies": {
+    "@fontsource-variable/noto-sans-jp": "^5.3.0",
+    "@metaplex-foundation/mpl-core": "^1.7.0",
+    "@metaplex-foundation/umi": "^1.4.1",
+    "@metaplex-foundation/umi-bundle-defaults": "^1.4.1",
+    "@metaplex-foundation/umi-signer-wallet-adapters": "^1.4.1",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/web3.js": "^1.98.4",
+    "bs58": "^6.0.0",
+    "buffer": "^6.0.3",
+    "next": "16.3.8",
+    "pg": "^8.16.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.8",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.5",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "wrangler": "4.147.0"
+  },
+  "overrides": {
+    "jayson": {
+      "uuid": "11.1.1"
+    }
+  }
+}

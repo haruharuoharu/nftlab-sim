@@ -5,7 +5,7 @@ A hands-on sandbox simulating real NFT use-cases, unlocked through quiz progress
 
 ## Overview
 
-NFTLab Sim combines quiz-based learning with an interactive sandbox where users don't just answer questions about real NFT pilots—they actually mint, transfer, and redeem demo NFTs replicating those scenarios (e.g., ticket resale, loyalty points, membership access). This experiential approach helps investors and professionals truly grasp NFT mechanics before applying them to real assets.
+NFTLab Sim combines quiz-based learning with an interactive sandbox where users don't just answer questions about real NFT pilots—they actually mint, transfer, and redeem demo NFTs replicating those scenarios (e.g., ticket transfer, one-time rewards, and member access). This experiential approach helps fans, staff, and project teams understand NFT mechanics before applying them to real assets.
 
 ## Problem
 
@@ -15,11 +15,27 @@ Reading or quizzing alone doesn't build real confidence in actually using NFTs. 
 
 NFTLab Sim lets users practice real NFT workflows risk-free in a simulated sandbox, unlocked progressively as they demonstrate quiz mastery. Every action — minting, transferring, redeeming — mirrors a real-world pilot use-case.
 
+## Live entertainment use case
+
+The same sandbox can support onboarding for stadiums, arenas, live venues, sports events, attractions, and other entertainment operators. Its three reusable modules cover common audience touchpoints:
+
+- Ticketing: minting, approved transfer, entry, and used-ticket checks
+- Loyalty: a one-time visit reward that the current owner can redeem
+- Membership: ownership-based access to an exclusive experience
+
+The product stays venue-agnostic: each operator can adapt the wording, learning content, and visual identity without rebuilding the underlying mint/transfer/redeem flow.
+
+## Business model
+
+- **For fans:** start in wallet-free simulation mode, then move to Solana Devnet when ready
+- **For venues and organizers:** reuse the scenarios for pre-launch guidance, staff training, and support-flow design
+- **Delivery model:** paid scenario customization, training design, and pilot launch support, with a path toward a recurring scenario-library license
+
 ## Features (MVP)
 
 - Quiz gates unlocking sandbox scenarios step by step
 - Mint/transfer/redeem demo NFTs mimicking real pilot use-cases
-- Scenario library: ticket resale, loyalty points, membership access
+- Reusable scenario library: ticket transfer and entry, one-time visit rewards, member access
 - Progress tracker showing completed real-world scenario simulations
 - Shareable completion certificate NFT after finishing all scenarios
 
@@ -60,15 +76,38 @@ Users progress through quizzes tied to real NFT pilot scenarios. Passing a quiz 
 
 - [Pitch deck (PDF)](docs/pitch.pdf)
 - [Pitch script](docs/pitch-script.md)
+- [Final submission draft](docs/final-submission-draft.md)
 
 ## Team
 
-- Name — Role — [GitHub](#) / [Twitter](#)
-- Name — Role — [GitHub](#) / [Twitter](#)
-- Name — Role — [GitHub](#) / [Twitter](#)
+- Masaharu Fukasawa — Solo builder / Product & Customer Success — [GitHub](https://github.com/haruharuoharu)
 
 Built for the Colosseum hackathon.
 
 ---
 
 🎬 Pitch video: [docs/pitch-video.mp4](docs/pitch-video.mp4)
+
+## v0.1 implementation
+
+The repository now includes a Japanese/English Next.js learning app with three quiz-gated scenarios, browser simulation, Solana Devnet Metaplex Core mint/transfer/burn operations, and shareable completion certificates. Progress uses browser storage with optional PostgreSQL synchronization.
+
+Devnet onboarding explains the practice network and test tokens. On wallet connection, a balance below 0.05 test SOL triggers a best-effort request for 0.5 test SOL, with a persisted 10-minute cooldown and official faucet fallback. The default transfer activity sends to an ephemeral practice partner and back in one atomic transaction, so learners can mint, transfer, and redeem using one wallet. A separate-wallet transfer option remains available. These additions support Japanese and English.
+
+```sh
+npm ci
+cp .env.example .env.local
+npm run dev
+```
+
+Open http://localhost:3000. No wallet or database is required for simulation mode.
+
+Use **日本語 / English** in the header to switch lessons, quizzes, wallet guidance, app messages, and certificate sharing text. The choice is saved in this browser; `?lang=en` or `?lang=ja` overrides the saved preference for a shared link. Language switches preserve answers, progress, certificates, and pending transactions. Wallet apps and their third-party dialogs use their own language settings. On-chain NFT names and existing metadata URIs are independent of the UI language.
+
+See [development and verification guide](docs/development.md) for Devnet wallet setup, PostgreSQL schema, optional Anchor learning receipts, validation commands, and current limitations. Existing pitch materials describe the original concept; the guide describes the implementation.
+
+Cloudflare Workers deployment configuration preserves the existing Next.js app, uses browser storage, serves publicly fetchable PNG metadata, and enables the verified Devnet receipt program. See [Cloudflare deployment instructions](docs/cloudflare-deployment.md). The app is deployed at [nftlab-sim.haruharuoharu.workers.dev](https://nftlab-sim.haruharuoharu.workers.dev); public metadata/PNG retrieval and PC Solflare certificate image/name display are verified.
+
+**Status (2026-10-04 JST):** application tests, typecheck, production build, PostgreSQL integration, and desktop/mobile browser E2E are verified. Anchor 0.32.1 SBF/IDL generation and local chain checks pass. PC Solflare testing completed all three Core mint/transfer/burn scenarios and certificate minting on actual Devnet (10 finalized transactions). The optional Anchor program is deployed on Devnet at `BUdXZQwEUkSkQve9wmdzGG4kkz8ViGmvnJ1b2EDAviwR`; all nine receipt checks also pass on actual Devnet. RPC verification confirms six successful CLI receipt transactions and three completed test receipt accounts. The browser's “record completion” action also succeeded with the real Solflare wallet, recording all three scenarios in one finalized transaction without minting another certificate. Its receipt owner, program, completion mask, and timestamp match the transaction. PC verification also confirms that the receipt, completed scenarios, and existing certificate remain visible after browser reload and reconnection to the same wallet; the record button shows that completion is already recorded. See [Devnet verification evidence](docs/devnet-verification.md). Production npm audit reports 0 high/critical and 3 moderate entries with a documented reachability review. Public hosting, on-chain HTTPS certificate metadata, and PC Solflare image/name display are verified. The Seeker certificate flow is verified after the v0 receipt fix: the Anchor completion record and Core certificate mint both finalized successfully, and the certificate image/name appeared in the mobile wallet. The wallet lists it under Unverified collectibles. Post-mint Seeker reload/reconnection retention is also confirmed: the same certificate and recorded wallet remain visible, and the record button stays disabled. Wallet detail-description display is an optional additional check. Certificates and Anchor receipts are self-reported educational records, not accredited or independently verified credentials. Anchor remains disabled in the app unless its environment variable is configured; Metaplex Core NFT actions directly use the existing Core program.
+
+Pending transactions are saved before broadcast and can be recovered by their original signatures after reopening. Cross-tab transaction locks prevent overlapping wallet operations. See the [Solflare PC verification guide](docs/solflare-pc-test.md) to test with your own Devnet extension wallet; no custom-program deployment is needed for Core scenarios.

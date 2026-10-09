@@ -1,0 +1,81 @@
+name: Application checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: nftlab
+          POSTGRES_PASSWORD: nftlab
+          POSTGRES_DB: nftlab
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U nftlab"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://nftlab:nftlab@localhost:5432/nftlab
+      # Enable the optional receipt UI for mocked browser coverage. No CI Devnet writes.
+      NEXT_PUBLIC_ANCHOR_PROGRAM_ID: BUdXZQwEUkSkQve9wmdzGG4kkz8ViGmvnJ1b2EDAviwR
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run audit
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build
+      - run: psql "$DATABASE_URL" -f db/schema.sql
+      - run: npm run test:db
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+  cloudflare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build Worker and exclude local environment values
+        run: |
+          printf 'NFTLAB_BUILD_CANARY=local-value-must-not-be-uploaded\n' > .env.test.local
+          npm run build:cloudflare
+      - run: npm run check:cloudflare
+      - name: Verify deployable bundle without a Cloudflare account or deployment
+        run: npm run dry-run:cloudflare
+  chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Rust for Anchor IDL generation
+        run: rustup toolchain install 1.84.1 --profile minimal && rustup default 1.84.1
+      - name: Install checksum-verified Anchor 0.32.1 and Agave 2.3.0
+        run: bash scripts/install-chain-tools.sh
+      - name: Build SBF program and IDL
+        run: anchor build
+      - name: Verify committed Rust dependency lock
+        run: git diff --exit-code -- Cargo.lock
+      - name: Test Anchor receipts and Core NFT transactions on local validator
+        run: npm run test:chain

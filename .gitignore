@@ -1,0 +1,18 @@
+node_modules/
+.next/
+.env*
+!.env.example
+*.tsbuildinfo
+target/
+.anchor/
+test-results/
+playwright-report/
+
+# Disposable test/deployment secrets
+*-keypair.json
+.devnet/
+
+# Cloudflare build, preview state and local runtime settings
+.open-next/
+.wrangler/
+.dev.vars*
