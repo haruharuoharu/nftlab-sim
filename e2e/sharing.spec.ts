@@ -19,11 +19,12 @@ for (const locale of ['ja', 'en'] as const) {
       await page.goto(`/?lang=${locale}`);
       await page.getByRole('button',{name:locale==='en'?'Try on Devnet ↗':'Devnetで体験 ↗',exact:true}).click();
       const certificate=page.locator('.certificate');
-      const before=await page.evaluate(()=>localStorage.getItem('nftlab-v1-devnet'));
       const share=certificate.getByRole('button',{name:locale==='en'?'Share certificate ↗':'修了証を共有 ↗',exact:true});
       const copy=certificate.getByRole('button',{name:locale==='en'?'Copy certificate details and link':'修了証の情報とリンクをコピー',exact:true});
       // Sharing an existing certificate works without reconnecting a wallet.
       await expect(share).toBeEnabled();
+      const before=await page.evaluate(()=>localStorage.getItem('nftlab-v1-devnet'));
+      expect(JSON.parse(before!).certificate.id).toBe(id);
       await share.click();
       const status=certificate.getByRole('status');
       const expected=behavior==='success'?(locale==='en'?'Sharing action completed.':'共有操作を完了しました。')
@@ -47,3 +48,28 @@ for (const locale of ['ja', 'en'] as const) {
     });
   }
 }
+
+
+test('mode switch preserves saved Devnet progress while synchronization is pending', async ({ page, context }) => {
+  const saved = {version:1,records:{ticket:{stage:'redeemed'},loyalty:{stage:'redeemed'},membership:{stage:'redeemed'}},certificate:{id,date:'2026-10-07T05:00:00.000Z'}};
+  await context.addInitScript(saved => localStorage.setItem('nftlab-v1-devnet', JSON.stringify(saved)), saved);
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/progress?namespace=devnet', async route => {
+    await pending;
+    await route.fulfill({json:{storage:'browser',progress:null}});
+  });
+  await page.goto('/?lang=en');
+  // Ensure the demo namespace has finished loading before switching.
+  await expect(page.getByRole('button',{name:'Reset progress',exact:true})).toBeEnabled();
+  await page.getByRole('button',{name:'Try on Devnet ↗',exact:true}).click();
+  try {
+    await expect(page.locator('.certificate').getByRole('button',{name:'Share certificate ↗',exact:true})).toBeEnabled();
+    await expect(page.getByRole('button',{name:'Reset progress',exact:true})).toBeDisabled();
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('nftlab-v1-devnet')!))).toEqual(saved);
+  } finally {
+    release();
+  }
+  await expect(page.getByRole('button',{name:'Reset progress',exact:true})).toBeEnabled();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('nftlab-v1-devnet')!))).toEqual(saved);
+});
