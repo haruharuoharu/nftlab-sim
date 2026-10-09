@@ -12,6 +12,7 @@ test('English journey, live switching, sharing and reload preserve progress', as
   await expect(page.getByRole('button', { name: '日本語', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'English', exact: true }).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.getByRole('heading', { name: 'Practice three event touchpoints in one safe environment.' })).toBeVisible();
   await expect(page).toHaveURL(/lang=en/);
   await expect(page.getByRole('heading', { name: 'First, a 2-question quiz' })).toBeVisible();
   await page.locator('fieldset').nth(0).getByRole('radio').nth(0).check();

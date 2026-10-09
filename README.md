@@ -5,7 +5,7 @@ A hands-on sandbox simulating real NFT use-cases, unlocked through quiz progress
 
 ## Overview
 
-NFTLab Sim combines quiz-based learning with an interactive sandbox where users don't just answer questions about real NFT pilots—they actually mint, transfer, and redeem demo NFTs replicating those scenarios (e.g., ticket resale, loyalty points, membership access). This experiential approach helps investors and professionals truly grasp NFT mechanics before applying them to real assets.
+NFTLab Sim combines quiz-based learning with an interactive sandbox where users don't just answer questions about real NFT pilots—they actually mint, transfer, and redeem demo NFTs replicating those scenarios (e.g., ticket transfer, one-time rewards, and member access). This experiential approach helps fans, staff, and project teams understand NFT mechanics before applying them to real assets.
 
 ## Problem
 
@@ -15,11 +15,27 @@ Reading or quizzing alone doesn't build real confidence in actually using NFTs. 
 
 NFTLab Sim lets users practice real NFT workflows risk-free in a simulated sandbox, unlocked progressively as they demonstrate quiz mastery. Every action — minting, transferring, redeeming — mirrors a real-world pilot use-case.
 
+## Live entertainment use case
+
+The same sandbox can support onboarding for stadiums, arenas, live venues, sports events, attractions, and other entertainment operators. Its three reusable modules cover common audience touchpoints:
+
+- Ticketing: minting, approved transfer, entry, and used-ticket checks
+- Loyalty: a one-time visit reward that the current owner can redeem
+- Membership: ownership-based access to an exclusive experience
+
+The product stays venue-agnostic: each operator can adapt the wording, learning content, and visual identity without rebuilding the underlying mint/transfer/redeem flow.
+
+## Business model
+
+- **For fans:** start in wallet-free simulation mode, then move to Solana Devnet when ready
+- **For venues and organizers:** reuse the scenarios for pre-launch guidance, staff training, and support-flow design
+- **Delivery model:** paid scenario customization, training design, and pilot launch support, with a path toward a recurring scenario-library license
+
 ## Features (MVP)
 
 - Quiz gates unlocking sandbox scenarios step by step
 - Mint/transfer/redeem demo NFTs mimicking real pilot use-cases
-- Scenario library: ticket resale, loyalty points, membership access
+- Reusable scenario library: ticket transfer and entry, one-time visit rewards, member access
 - Progress tracker showing completed real-world scenario simulations
 - Shareable completion certificate NFT after finishing all scenarios
 
@@ -60,12 +76,11 @@ Users progress through quizzes tied to real NFT pilot scenarios. Passing a quiz 
 
 - [Pitch deck (PDF)](docs/pitch.pdf)
 - [Pitch script](docs/pitch-script.md)
+- [Final submission draft](docs/final-submission-draft.md)
 
 ## Team
 
-- Name — Role — [GitHub](#) / [Twitter](#)
-- Name — Role — [GitHub](#) / [Twitter](#)
-- Name — Role — [GitHub](#) / [Twitter](#)
+- Masaharu Fukasawa — Solo builder / Product & Customer Success — [GitHub](https://github.com/haruharuoharu)
 
 Built for the Colosseum hackathon.
 

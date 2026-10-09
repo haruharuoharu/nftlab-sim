@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 test('learn, simulate, earn certificate, retain progress and isolate modes',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/');
+ await expect(page.getByRole('heading',{name:'イベント運営の3つの接点を、ひとつの練習環境で。'})).toBeVisible();
  const metadataResponse=await page.request.get('/api/metadata/ticket');expect(metadataResponse.status()).toBe(200);const metadata=await metadataResponse.json();expect(metadata.image).toBe(new URL('/nft-card.png',metadataResponse.url()).href);
  await expect(page.getByRole('button',{name:'ロイヤルティ特典',exact:false})).toBeDisabled();
  // An incorrect answer does not unlock the sandbox.
