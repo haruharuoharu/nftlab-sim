@@ -88,6 +88,10 @@ Built for the Colosseum hackathon.
 
 🎬 Pitch video: [docs/pitch-video.mp4](docs/pitch-video.mp4)
 
+## Visual introduction for first-time users
+
+The Japanese/English introduction explains NFT, wallet, Devnet/Devnet NFT, and SOL/test SOL with original SVG illustrations and short everyday examples. Optional expandable details explain the difference between an NFT and a saved image, and between the wallet app and network records. A ticket journey connects create/pass on/use with mint/transfer/redeem. Users can then choose browser-only simulation or Devnet; no real SOL purchase is needed. The event pilot and business information appear after the learning experience.
+
 ## v0.1 implementation
 
 The repository now includes a Japanese/English Next.js learning app with three quiz-gated scenarios, browser simulation, Solana Devnet Metaplex Core mint/transfer/burn operations, and shareable completion certificates. Progress uses browser storage with optional PostgreSQL synchronization.
