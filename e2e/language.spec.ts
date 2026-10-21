@@ -13,6 +13,7 @@ test('English journey, live switching, sharing and reload preserve progress', as
   await page.getByRole('button', { name: 'English', exact: true }).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByRole('heading', { name: 'Practice three event touchpoints in one safe environment.' })).toBeVisible();
+  await test.info().attach('visual-basics-en',{body:await page.locator('.basics-guide').screenshot({path:`visual-previews/${test.info().project.name}-en.png`}),contentType:'image/png'});
   await expect(page).toHaveURL(/lang=en/);
   await expect(page.getByRole('heading', { name: 'First, a 2-question quiz' })).toBeVisible();
   await page.locator('fieldset').nth(0).getByRole('radio').nth(0).check();

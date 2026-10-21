@@ -5,6 +5,13 @@ export function isLocale(value: unknown): value is Locale { return value === 'ja
 // Japanese source copy is also the fallback. Translate at render time so an
 // in-flight operation or a restored record follows the current UI language.
 export const english: Record<string, string> = {
+  '練習へ進む ↓': 'Go to practice ↓',
+  'デジタルのチケットを、つくる・渡す・使う。': 'Create, pass on, and use a digital ticket.',
+  'まずは無料で、ウォレットなしの練習から。': 'Start for free. No wallet needed for your first practice.',
+  '2つの練習方法。最初はウォレットなしで。': 'Two ways to practice. Start without a wallet.',
+  '画面の中だけで体験。準備なしで始められます。': 'Practice entirely in your browser. No setup needed.',
+  'ウォレットとテストSOLを使い、練習用ネットワークに記録します。': 'Use a wallet and test SOL to record actions on a practice network.',
+
   'NFTをクイズと実践で学ぶサンドボックス。': 'Learn NFTs through quizzes and hands-on practice in a sandbox.',
   'NFTLab Sim ホーム': 'NFTLab Sim home',
   '体験モード': 'Practice mode',
