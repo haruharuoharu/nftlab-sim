@@ -31,6 +31,10 @@ The product stays venue-agnostic: each operator can adapt the wording, learning 
 - **For venues and organizers:** reuse the scenarios for pre-launch guidance, staff training, and support-flow design
 - **Delivery model:** paid scenario customization, training design, and pilot launch support, with a path toward a recurring scenario-library license
 
+## In-app help
+
+The header's Help link opens the Japanese/English “How to use & troubleshooting” section. It covers getting started, test SOL and faucet limits, interrupted wallet approvals and pending transaction recovery, Explorer display errors, browser storage, and self-reported certificates. Explorer private-window troubleshooting applies to the external Explorer link; learners keep their original browser for saved progress.
+
 ## Features (MVP)
 
 - Quiz gates unlocking sandbox scenarios step by step
