@@ -4,7 +4,7 @@ import { useLanguage } from './language-provider';
 
 const copy = {
   ja: {
-    title: 'NFTってなに？ まずは、絵で見てみよう。',
+    title: 'NFTってなに？ 絵で見てみよう',
     intro: 'チケットをつくる、だれかに渡す、入口で使う。身近な体験で、4つの言葉を覚えよう。',
     items: [
       { name: 'NFT', label: '持ち主がわかる、デジタルのしるし', text: '1つずつ見分けられ、今だれが持っているかをネットワーク上で確認できます。チケットや記念品などに使えます。', more: '画像を保存することと、そのNFTの持ち主になることは別です。', image: '個別の番号が付いたデジタルチケットと、持ち主の記録' },
@@ -18,7 +18,7 @@ const copy = {
     note: '練習では、チケットを使ったら「使用済み」にします。Devnetの教材ではNFTを消費し、同じものをもう一度使えないようにします。',
   },
   en: {
-    title: 'What is an NFT? Start with a picture.',
+    title: 'What is an NFT? Start with a picture',
     intro: 'Create a ticket, pass it to someone, and use it at the entrance. Learn four terms through a familiar experience.',
     items: [
       { name: 'NFT', label: 'A digital item with a recorded owner', text: 'Each NFT can be identified separately. A network records who owns it. NFTs can be used for tickets or collectibles.', more: 'Saving an image is different from owning the NFT associated with it.', image: 'A numbered digital ticket and its ownership record' },
