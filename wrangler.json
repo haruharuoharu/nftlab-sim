@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nftlab-sim",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-04",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": true,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "nftlab-sim" }
+  ],
+  "vars": {
+    "DATABASE_URL": "",
+    "NEXT_PUBLIC_APP_URL": "",
+    "NEXT_PUBLIC_SOLANA_RPC_URL": "https://api.devnet.solana.com",
+    "NEXT_PUBLIC_ANCHOR_PROGRAM_ID": "BUdXZQwEUkSkQve9wmdzGG4kkz8ViGmvnJ1b2EDAviwR"
+  }
+}
