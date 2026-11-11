@@ -20,7 +20,7 @@ export function useAnalytics(mode: Mode, connected: boolean) {
         const response=await fetch('/api/analytics',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify(payload),keepalive:true,signal:AbortSignal.timeout(5000)});
         return response.ok;
-      },()=>new URLSearchParams(window.location.search).get('ref'));
+      },()=>new URLSearchParams(window.location.search).get('ref'),data.referrals);
     }).catch(()=>{});
     return()=>{disposed=true;abort.abort();client.current=null;};
   },[]);

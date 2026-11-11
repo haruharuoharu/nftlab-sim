@@ -2,7 +2,7 @@ import { actionBit, analyticsSchema, CERTIFICATE, isFresh, journeyKey, referral,
 import type { Mode, Progress, ScenarioId } from './scenarios';
 export const CONSENT_KEY = 'nftlab-analytics-consent-v1';
 // No browser identifier is created until an opted-in learner starts a fresh run.
-export function createAnalyticsClient(storage: Storage, send: (payload: AnalyticsPayload) => Promise<boolean>, campaign: () => string | null) {
+export function createAnalyticsClient(storage: Storage, send: (payload: AnalyticsPayload) => Promise<boolean>, campaign: () => string | null, allowed?: readonly string[]) {
   let inflight = false;
   const pending = new Set<Mode>();
   function read(mode: Mode): AnalyticsPayload | null {
@@ -31,7 +31,7 @@ export function createAnalyticsClient(storage: Storage, send: (payload: Analytic
         if (storage.getItem(CONSENT_KEY) !== 'yes') return;
         if (!read(mode)) {
           if (!isFresh(progress)) return;
-          const payload: AnalyticsPayload = {version: 1, id: crypto.randomUUID(), mode, ref: referral(campaign()), mask: START};
+          const payload: AnalyticsPayload = {version: 1, id: crypto.randomUUID(), mode, ref: referral(campaign(),allowed), mask: START};
           storage.setItem(journeyKey(mode), JSON.stringify(payload));
         }
         update(mode, connected && mode === 'devnet' ? WALLET : START);
