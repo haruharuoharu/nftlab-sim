@@ -3,19 +3,33 @@
   "name": "nftlab-sim",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-10-04",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
   "workers_dev": true,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
   "services": [
-    { "binding": "WORKER_SELF_REFERENCE", "service": "nftlab-sim" }
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "nftlab-sim"
+    }
   ],
   "vars": {
     "DATABASE_URL": "",
     "NEXT_PUBLIC_APP_URL": "",
     "NEXT_PUBLIC_SOLANA_RPC_URL": "https://api.devnet.solana.com",
     "NEXT_PUBLIC_ANCHOR_PROGRAM_ID": "BUdXZQwEUkSkQve9wmdzGG4kkz8ViGmvnJ1b2EDAviwR"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "ANALYTICS_DB",
+      "database_name": "nftlab-analytics",
+      "database_id": "d61a6e76-9a80-4042-a607-6475c588d8f4",
+      "migrations_dir": "migrations"
+    }
+  ]
 }
