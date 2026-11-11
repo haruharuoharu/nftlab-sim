@@ -20,7 +20,8 @@
     "deploy:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare deploy",
     "dry-run:cloudflare": "wrangler deploy --dry-run",
     "check:cloudflare": "node --import tsx scripts/check-cloudflare.mts",
-    "check:public": "node --import tsx scripts/check-public-app.mts"
+    "check:public": "node --import tsx scripts/check-public-app.mts",
+    "check:analytics": "node --import tsx scripts/check-analytics.mts"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-jp": "^5.3.0",
