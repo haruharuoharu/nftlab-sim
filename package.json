@@ -20,7 +20,8 @@
     "deploy:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare deploy",
     "dry-run:cloudflare": "wrangler deploy --dry-run",
     "check:cloudflare": "node --import tsx scripts/check-cloudflare.mts",
-    "check:public": "node --import tsx scripts/check-public-app.mts"
+    "check:public": "node --import tsx scripts/check-public-app.mts",
+    "check:analytics": "node --import tsx scripts/check-analytics.mts"
   },
   "dependencies": {
     "@fontsource-variable/noto-sans-jp": "^5.3.0",
@@ -33,14 +34,14 @@
     "@solana/web3.js": "^1.98.4",
     "bs58": "^6.0.0",
     "buffer": "^6.0.3",
-    "next": "16.3.8",
+    "next": "16.4.6",
     "pg": "^8.16.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "zod": "^4.1.0"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "1.20.8",
+    "@opennextjs/cloudflare": "1.20.16",
     "@playwright/test": "^1.63.0",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.15.5",
@@ -48,7 +49,7 @@
     "@types/react-dom": "^19.2.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.3",
-    "wrangler": "4.147.0"
+    "wrangler": "4.160.0"
   },
   "overrides": {
     "jayson": {

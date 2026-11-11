@@ -14,12 +14,15 @@ import { remainingLabel } from '@/lib/i18n';
 import CertificateSharing from './certificate-sharing';
 import BasicsGuide from './basics-guide';
 import HelpGuide from './help-guide';
+import Feedback from './feedback';
+import { useAnalytics } from './measurement';
 const WalletButton=dynamic(()=>import('@solana/wallet-adapter-react-ui').then(m=>m.WalletMultiButton),{ssr:false});
 const stages={locked:'クイズに挑戦',ready:'発行できます',minted:'発行済み',transferred:'譲渡済み',redeemed:'体験完了'};
 export default function Lab(){
  const {locale,setLocale,t}=useLanguage();
  const [transferTarget,setTransferTarget]=useState<'practice'|'custom'>('practice');
  const wallet=useWallet();const [mode,setMode]=useState<Mode>('demo');const [progress,setProgress]=useState<Progress>(freshProgress);const [selected,setSelected]=useState(0);const [answers,setAnswers]=useState<number[]>([]);const [quizResult,setQuizResult]=useState<boolean|null>(null);const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');const [recipient,setRecipient]=useState('');const [ready,setReady]=useState(false);const [loadedMode,setLoadedMode]=useState<Mode|null>(null);const [storage,setStorage]=useState('ブラウザに保存');const operation=useRef(false);const generation=useRef(0);
+ const measurement=useAnalytics(mode,wallet.connected);
  const [pending,setPending]=useState<PendingTransaction|null>(null);const [journalReady,setJournalReady]=useState(false);const [journalError,setJournalError]=useState('');
  const chainBlocked=mode==='devnet'&&(!journalReady||!!pending||!!journalError);
  useEffect(()=>{const refresh=()=>{try{setPending(readPending(localStorage));setJournalError('');}catch{setJournalError('確認待ち取引の保存内容を読み取れません。新しい取引を停止しています。');}setJournalReady(true);};refresh();const changed=(event:StorageEvent)=>{if(event.key===JOURNAL_KEY||event.key===null)refresh();};window.addEventListener('storage',changed);return()=>window.removeEventListener('storage',changed);},[]);
@@ -35,7 +38,7 @@ export default function Lab(){
  // Never save the previous mode's state into a newly selected namespace.
  useEffect(()=>{if(!ready||loadedMode!==mode)return;try{localStorage.setItem(`nftlab-v1-${mode}`,JSON.stringify(progress));}catch{setStorage('ブラウザ保存失敗');}const abort=new AbortController();const timer=setTimeout(()=>{fetch(`/api/progress?namespace=${mode}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(progress),signal:abort.signal}).then(r=>{if(!r.ok)throw new Error();return r.json();}).then(d=>setStorage(d.storage==='postgres'?'PostgreSQLに同期':'ブラウザに保存')).catch(e=>{if(e.name!=='AbortError')setStorage('ブラウザのみ保存・同期停止');});},350);return()=>{clearTimeout(timer);abort.abort();};},[progress,ready,mode,loadedMode]);
  function select(i:number){if(busy)return;setSelected(i);setAnswers([]);setQuizResult(null);setRecipient('');setMessage('');}
- function quiz(){const passed=passQuiz(s.id,answers);setQuizResult(passed);if(passed){const next=advance(progress,s.id,'unlock');if(mode==='devnet'){try{localStorage.setItem('nftlab-v1-devnet',JSON.stringify(next));}catch{setStorage('ブラウザ保存失敗');}}setProgress(next);setMessage('クイズ合格！サンドボックスを解放しました。');}else setMessage('解説を確認して、もう一度挑戦しましょう。');}
+ function quiz(){measurement.start(progress);const passed=passQuiz(s.id,answers);setQuizResult(passed);if(passed){const next=advance(progress,s.id,'unlock');if(mode==='devnet'){try{localStorage.setItem('nftlab-v1-devnet',JSON.stringify(next));}catch{setStorage('ブラウザ保存失敗');}}setProgress(next);setMessage('クイズ合格！サンドボックスを解放しました。');}else setMessage('解説を確認して、もう一度挑戦しましょう。');}
  function snapshot():Progress{const raw=localStorage.getItem('nftlab-v1-devnet');if(!raw)return progress;const parsed=progressSchema.safeParse(JSON.parse(raw));if(!parsed.success)throw new Error('学習記録を読み取れません。取引を停止しました。');return parsed.data;}
  async function runChain(scope:PendingTransaction['scope'],kind:PendingTransaction['action'],run:(observe:TransactionObserver)=>Promise<unknown>){
   if(readPending(localStorage))throw new Error('確認待ちの取引があります。先に取引状況を再確認してください。');
@@ -44,13 +47,15 @@ export default function Lab(){
   await run(data=>{const transaction:PendingTransaction={...data,...(kind==='receipt'?{programId:receiptProgram}:{}),version:1,id:crypto.randomUUID(),scope,action:kind,before,createdAt:new Date().toISOString()};savePending(localStorage,transaction);saved=transaction;setPending(transaction);});
   if(!saved)throw new Error('取引の保存内容を確認できません。');
   const next=commitConfirmed(localStorage,snapshot(),saved);setProgress(next);setPending(null);
+  if(scope==='certificate'){if(kind==='mint')measurement.certificate();}
+  else if(kind!=='receipt')measurement.action(scope,kind);
  }
  async function action(kind:'mint'|'transfer'|'redeem'){
   if(operation.current||chainBlocked)return;operation.current=true;setBusy(true);setMessage('');
   try{if(mode==='devnet')await withTransactionLock(async()=>{
    const chain=await import('@/lib/devnet');const origin=process.env.NEXT_PUBLIC_APP_URL||window.location.origin;
    await runChain(s.id,kind,observe=>kind==='mint'?chain.mintNft(endpoint,wallet,`NFTLab ${s.title}`,`${origin}/api/metadata/${s.id}`,observe):kind==='transfer'?(transferTarget==='practice'?chain.practiceTransferNft(endpoint,wallet,record.asset!,observe):chain.transferNft(endpoint,wallet,record.asset!,recipient.trim(),observe)):chain.redeemNft(endpoint,wallet,record.asset!,observe));
-  });else {const details=kind==='mint'?{asset:`SIM-${crypto.randomUUID()}`,owner:'あなた'}:{owner:'練習パートナー'};setProgress(p=>advance(p,s.id,kind,details));}
+  });else {const details=kind==='mint'?{asset:`SIM-${crypto.randomUUID()}`,owner:'あなた'}:{owner:'練習パートナー'};setProgress(p=>advance(p,s.id,kind,details));measurement.action(s.id,kind);}
   setMessage(kind==='redeem'?'利用を確認しました。このシナリオは完了です。':kind==='transfer'?(mode==='devnet'&&transferTarget==='practice'?'練習相手への譲渡と返送を確認しました。同じウォレットで利用へ進めます。':'所有者が変わりました。次は利用の確認です。'):'NFTを発行しました。次は譲渡を体験しましょう。');
   }catch(e){setMessage(e instanceof Error?e.message:'操作に失敗しました。');}finally{operation.current=false;setBusy(false);}
  }
@@ -60,7 +65,7 @@ export default function Lab(){
    if(receiptProgram&&!receiptRecorded){const {recordReceipt}=await import('@/lib/anchor-receipt');await runChain('certificate','receipt',observe=>recordReceipt(endpoint,wallet,receiptProgram,observe));}
    const {mintNft}=await import('@/lib/devnet');const origin=process.env.NEXT_PUBLIC_APP_URL||window.location.origin;
    await runChain('certificate','mint',observe=>mintNft(endpoint,wallet,'NFTLab Sim completion certificate',`${origin}/api/metadata/certificate`,observe));
-  });else setProgress(p=>({...p,certificate:{id:`SIM-CERT-${crypto.randomUUID()}`,date:new Date().toISOString()}}));
+  });else {setProgress(p=>({...p,certificate:{id:`SIM-CERT-${crypto.randomUUID()}`,date:new Date().toISOString()}}));measurement.certificate();}
   setMessage('修了証を発行しました。');
   }catch(e){setMessage(e instanceof Error?e.message:'修了証の発行に失敗しました。');}finally{operation.current=false;setBusy(false);}
  }
@@ -74,18 +79,19 @@ export default function Lab(){
   try{await withTransactionLock(async()=>{
    const transaction=readPending(localStorage);if(!transaction){setPending(null);return;}
    const {recoverTransaction}=await import('@/lib/transaction-recovery');const result=await recoverTransaction(endpoint,transaction);
-   if(result.state==='confirmed'){const next=commitConfirmed(localStorage,snapshot(),transaction);setProgress(next);setPending(null);setMessage('取引の成功を確認し、学習記録を復旧しました。');}
+   if(result.state==='confirmed'){const next=commitConfirmed(localStorage,snapshot(),transaction);setProgress(next);setPending(null);if(transaction.scope==='certificate'){if(transaction.action==='mint')measurement.certificate();}else if(transaction.action!=='receipt')measurement.action(transaction.scope,transaction.action);setMessage('取引の成功を確認し、学習記録を復旧しました。');}
    else if(result.state==='failed'){clearPending(localStorage,transaction.id);setPending(null);setMessage('取引の失敗を確認しました。学習進捗は変更していません。内容を確認して再試行できます。');}
    else setMessage(result.expired?'取引の有効期限は過ぎていますが、成功・失敗を確認できません。重複を防ぐため記録を保持しています。Explorerまたは履歴を取得できるDevnet RPCで確認してください。':'取引をまだ確認できません。新しく発行せず、しばらくしてから再確認してください。');
   });}catch(e){setMessage(e instanceof Error?e.message:'取引を確認できません。記録を保持しています。');}finally{operation.current=false;setBusy(false);}
  }
 
- function reset(){if(busy||chainBlocked||!window.confirm(t('このモードの学習進捗をリセットしますか？Devnet上のNFTは削除されません。')))return;setProgress(freshProgress());select(0);}
+ function reset(){if(busy||chainBlocked||!window.confirm(t('このモードの学習進捗をリセットしますか？Devnet上のNFTは削除されません。')))return;measurement.reset();setProgress(freshProgress());select(0);}
  return <main>
  <header><a className="brand" href="/" aria-label={t("NFTLab Sim ホーム")}><span className="brand-icon">⬡</span><strong>NFTLab <span>Sim</span></strong></a><div className="header-tools"><a className="help-link" href="#help">{locale==='en'?'Help':'使い方・困ったとき'}</a><div className="language-toggle" role="group" aria-label="Language / 言語"><button lang="ja" aria-pressed={locale==='ja'} onClick={()=>setLocale('ja')}>日本語</button><button lang="en" aria-pressed={locale==='en'} onClick={()=>setLocale('en')}>English</button></div><span className="network"><i/> {mode==='demo'?'SIMULATION':'SOLANA DEVNET'}</span>{mode==='devnet'&&<WalletButton>{wallet.connecting?t("接続中…"):wallet.disconnecting?t("切断中…"):wallet.connected&&wallet.publicKey?`${wallet.wallet?.adapter.name ?? 'Wallet'} · ${wallet.publicKey.toBase58().slice(0,4)}…${wallet.publicKey.toBase58().slice(-4)}`:wallet.wallet?locale==='en'?`Connect ${wallet.wallet.adapter.name}`:`${wallet.wallet.adapter.name}を接続`:t("ウォレットを選択")}</WalletButton>}</div></header>
  <section className="hero"><div><p className="eyebrow">THE NFT PRACTICE LAB</p><h1>{locale==='en'?<>From knowing<br/>to <em>doing</em></>:<>知るだけから、<br/><em>使える</em>へ</>}</h1><p className="hero-copy">{t("デジタルのチケットを、つくる・渡す・使う。")}<br/>{t("まずは無料で、ウォレットなしの練習から。")}</p><a className="basics-skip" href="#mode-title">{t("練習へ進む ↓")}</a></div><div className="hero-art" aria-hidden="true"><div className="orb">◈</div><span className="art-caption">LEARN. MINT. TRANSFER. REDEEM.</span><span className="art-tag">SANDBOX / 001</span></div></section>
 
  <BasicsGuide/>
+ {measurement.notice}
  <section className="experience-mode" aria-labelledby="mode-title"><h2 id="mode-title">{t("2つの練習方法。最初はウォレットなしで。")}</h2><div className="mode-explanations"><p><strong>{t("練習モード")}</strong><span>{t("画面の中だけで体験。準備なしで始められます。")}</span></p><p><strong>Devnet</strong><span>{t("ウォレットとテストSOLを使い、練習用ネットワークに記録します。")}</span></p></div><div className="mode-toggle" aria-label={t("体験モード")}><button disabled={busy} aria-pressed={mode==='demo'} onClick={()=>setMode('demo')}>{t("練習モード")}</button><button disabled={busy} aria-pressed={mode==='devnet'} onClick={()=>setMode('devnet')}>{t("Devnetで体験 ↗")}</button></div><p className="mode-note">{mode==='demo'?t("ウォレット不要・手数料なし。NFT操作はブラウザ内のシミュレーションです。"):t("実際のDevnet NFTを操作します。テストSOLが必要です。Mainnetは使用しません。")}</p></section>
  {mode==='devnet'&&<><DevnetOnboarding/><DevnetWalletStatus endpoint={endpoint}/></>}
  {mode==='devnet'&&(pending||journalError)&&<section className="pending-transaction" aria-label={t("確認待ち取引")}><h2>{t("確認待ちの取引があります")}</h2>{pending?<><p>{t("同じ署名から状況を確認します。確認が終わるまで、新しい取引と進捗リセットを停止しています。")}</p><p className="address">{t("署名: ")}{pending.signature}</p><a href={`https://explorer.solana.com/tx/${pending.signature}?cluster=devnet`} target="_blank" rel="noreferrer">{t("Explorerで取引を確認 ↗")}</a><button className="primary" disabled={busy||!ready} onClick={recover}>{t("取引状況を再確認")}</button></>:<p>{t(journalError)}</p>}</section>}
@@ -96,6 +102,7 @@ export default function Lab(){
  <p className="notice" role="status" aria-live="polite">{t(message)}</p></section></div>
  <section className={`certificate ${count===3?'unlocked':''}`}><div className="certificate-icon">✧</div><div><p className="eyebrow">YOUR PROOF OF PRACTICE</p><h2>{t("小さな実践を、修了証に。")}</h2><p>{progress.certificate?t("修了証を発行しました。学んだことを共有しましょう。"):t("3つのシナリオを完了すると、修了証を発行できます。")}</p><small>{mode==='demo'?t("練習モードではブラウザ内のデジタル修了証です。"):t("DevnetではMetaplex Core NFTとして発行します。")}{' '}{t("自己申告の学習記録であり、公的資格・認証ではありません。")}</small>{progress.certificate&&<p className="address">{progress.certificate.id}</p>}{progress.certificate?.signature&&<a href={`https://explorer.solana.com/address/${progress.certificate.id}?cluster=devnet`} target="_blank" rel="noreferrer">{t("修了証NFTを確認 ↗")}</a>}</div><>{progress.certificate?<CertificateSharing key={`${mode}-${progress.certificate.id}`} mode={mode} id={progress.certificate.id}/>:<button className="primary" disabled={chainBlocked||busy||!ready||count<3||(mode==='devnet'&&!wallet.connected)} onClick={certificate}>{count<3?remainingLabel(locale,3-count,'certificate'):t("修了証を発行 →")}</button>}</></section>
  {mode==='devnet'&&(receiptProgram||progress.receipt)&&<section className="learning-receipt" aria-label={t("チェーンの学習記録")}><div><h2>{t("学習完了をDevnetに記録")}</h2><p>{t("3つの体験を完了したことを、接続ウォレットの自己申告として記録します。発行済みの修了証からも追加できます。")}</p>{progress.receipt&&<><p>{t("学習完了を記録済みです。")}</p><p className="address">{t("記録したウォレット: ")}{progress.receipt.wallet}</p><a href={`https://explorer.solana.com/address/${progress.receipt.id}?cluster=devnet`} target="_blank" rel="noreferrer">{t("学習記録を確認 ↗")}</a><a href={`https://explorer.solana.com/tx/${progress.receipt.signature}?cluster=devnet`} target="_blank" rel="noreferrer">{t("記録の取引を確認 ↗")}</a></>}{receiptProgram&&!wallet.connected&&<p className="hint">{t("右上からウォレットを接続してください。")}</p>}</div>{receiptProgram&&<button className="primary" disabled={chainBlocked||busy||!ready||count!==3||!wallet.connected||receiptRecorded} onClick={recordCompletion}>{receiptRecorded?t("このウォレットに記録済み"):count<3?remainingLabel(locale,3-count,'receipt'):t("学習完了を記録 →")}</button>}{busy&&<p role="status">{t("承認・確認を待っています。")}</p>}</section>}
+ <Feedback mode={mode} progress={progress}/>
  <HelpGuide/>
  <section className="pilot" aria-labelledby="pilot-title"><div className="pilot-heading"><div><p className="eyebrow">LIVE ENTERTAINMENT PILOT</p><h2 id="pilot-title">{t("イベント運営の3つの接点を、ひとつの練習環境で。")}</h2></div><p>{t("ライブ、スポーツ、アトラクションなどに共通するチケット、来場特典、会員アクセスを、実資産を使う前に安全に体験できます。")}</p></div><div className="pilot-steps"><article><small>01 TICKETING</small><h3>{t("チケットと入場")}</h3><p>{t("発行、公式な譲渡、利用済み確認を練習。")}</p></article><article><small>02 LOYALTY</small><h3>{t("来場特典")}</h3><p>{t("保有者だけが使える1回限りの特典を体験。")}</p></article><article><small>03 MEMBERSHIP</small><h3>{t("会員アクセス")}</h3><p>{t("所有条件に応じた限定体験への入場を確認。")}</p></article></div><div className="business"><div className="business-heading"><p className="eyebrow">BUSINESS MODEL</p><h2>{t("ファンと運営チーム、両方の導入障壁を下げる。")}</h2></div><article><small>{t("ファン向け")}</small><p>{t("ウォレット不要の練習から始め、誤操作や損失への不安を減らします。")}</p></article><article><small>{t("施設・主催者向け")}</small><p>{t("本番前の説明、スタッフ研修、問い合わせ設計に同じシナリオを活用できます。")}</p></article><article><small>{t("導入モデル")}</small><p>{t("シナリオのカスタマイズ、研修設計、実証開始支援を組み合わせて提供します。")}</p></article></div></section>
  <footer><span>NFTLab Sim · Practice before you leap.</span><button onClick={reset} disabled={chainBlocked||!ready||busy}>{t("学習をリセット")}</button><a href="https://github.com/haruharuoharu/nftlab-sim" target="_blank" rel="noreferrer">GitHub ↗</a></footer>

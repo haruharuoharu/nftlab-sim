@@ -16,3 +16,5 @@ playwright-report/
 .open-next/
 .wrangler/
 .dev.vars*
+
+.analytics-local.json
