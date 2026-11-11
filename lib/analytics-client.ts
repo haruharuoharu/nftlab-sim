@@ -6,8 +6,7 @@ export function createAnalyticsClient(storage: Storage, send: (payload: Analytic
   let inflight = false;
   const pending = new Set<Mode>();
   function read(mode: Mode): AnalyticsPayload | null {
-    if (storage.getItem(CONSENT_KEY) !== 'yes') return null;
-    try { const parsed = analyticsSchema.safeParse(JSON.parse(storage.getItem(journeyKey(mode)) || 'null')); return parsed.success ? parsed.data : null; } catch { return null; }
+    try { if (storage.getItem(CONSENT_KEY) !== 'yes') return null; const parsed = analyticsSchema.safeParse(JSON.parse(storage.getItem(journeyKey(mode)) || 'null')); return parsed.success ? parsed.data : null; } catch { return null; }
   }
   async function flush(mode: Mode) {
     pending.add(mode);

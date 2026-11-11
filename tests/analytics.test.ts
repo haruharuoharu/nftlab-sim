@@ -63,3 +63,10 @@ test('SQLite cohort report separates modes and referrals, includes all-three com
   assert.equal(rows.length,2);assert.equal(rows[0].started,1);assert.equal(rows[0].redeemed,1);assert.equal(rows[0].lessonsCompleted,0);
   assert.equal(rows[1].lessonsCompleted,1);assert.equal(rows[1].certificate,1);assert.equal(rows[1].walletConnected,1);db.close();
 });
+test('blocked browser storage never breaks start, milestone updates or retries',async()=>{
+ const storage=new MemoryStorage();storage.getItem=()=>{throw Error('blocked');};
+ let sends=0;const client=createAnalyticsClient(storage,async()=>{sends++;return true;},()=>null);
+ assert.doesNotThrow(()=>client.start('demo',freshProgress(),false));
+ assert.doesNotThrow(()=>client.action('demo','ticket','mint'));
+ await assert.doesNotReject(()=>client.flush('demo'));assert.equal(sends,0);
+});
