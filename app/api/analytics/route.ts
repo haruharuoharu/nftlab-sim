@@ -6,7 +6,12 @@ export async function GET() {
 }
 export async function POST(request: Request) {
   const response = (body: unknown, status: number) => Response.json(body, {status, headers: NO_STORE});
-  if (request.headers.get('origin') !== new URL(request.url).origin) return response({error:'Invalid origin'},403);
+  let sameOrigin = false;
+  try { const origin = new URL(request.headers.get('origin') || '');
+    sameOrigin = ['http:', 'https:'].includes(origin.protocol) && origin.host === request.headers.get('host');
+  } catch {}
+  // OpenNext can reconstruct an internal URL; validate against the HTTP Host, not that URL.
+  if (!sameOrigin) return response({error:'Invalid origin'},403);
   if (!request.headers.get('content-type')?.startsWith('application/json')) return response({error:'Invalid content type'},415);
   // Bound the stream, including chunked requests with no Content-Length.
   const reader = request.body?.getReader(); if (!reader) return response({error:'Invalid body'},400);
