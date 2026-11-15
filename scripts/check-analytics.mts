@@ -45,6 +45,10 @@ try{
  const month=new Date().toISOString().slice(0,7);
  const monthly=await (await admin('/api/admin/monthly?month='+month+'&ref=new-group')).json();
  assert.equal(monthly.adoptedCommunities,1);assert.equal(monthly.rows.length,2);assert.equal(monthly.rows.find((r:any)=>r.mode==='devnet').feedbackResponses,1);assert.equal(monthly.rows[0].started,0);assert.equal(monthly.rows[0].lessonCompletionRate,null);
+ assert.equal(monthly.rows[0].minted,0);assert.equal(monthly.rows[0].walletConnected,0);assert.equal(monthly.rows[0].ticket_transfer,0);
+ const reached=await (await admin('/api/admin/monthly?month='+month+'&ref=note')).json();
+ const devnet=reached.rows.find((r:any)=>r.mode==='devnet');assert.equal(devnet.started,1);assert.equal(devnet.minted,1);assert.equal(devnet.walletConnected,1);assert.equal(devnet.ticket_mint,1);assert.equal(devnet.ticket_transfer,0);
+ const reachCsv=await (await admin('/api/admin/monthly?month='+month+'&ref=note&format=csv')).text();assert.ok(reachCsv.includes('"minted"'));assert.ok(reachCsv.includes('"membership_redeem"'));
  const csv=await admin('/api/admin/monthly?month='+month+'&ref=new-group&format=csv');assert.match(csv.headers.get('content-type')||'',/text\/csv/);assert.equal(csv.headers.get('cache-control'),'no-store');assert.ok(!(await csv.text()).includes('colosseum'));
  console.log('Passed: local Workers + D1 ingestion, deduplication, validation, private report and cohort completion. No remote database or Devnet writes.');
 }catch(e){console.error(e);console.error(logs);process.exitCode=1;}
