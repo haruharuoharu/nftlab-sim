@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {REACH_KEYS} from './learning-report';
 export const codeSchema=z.string().regex(/^[a-z][a-z0-9-]{1,39}$/);
 export const communitySchema=z.object({
  code:codeSchema.refine(s=>s!=='direct'), name:z.string().trim().min(1).max(80),
@@ -14,4 +15,4 @@ export function monthRange(month:string){
 }
 // Human-facing exports cannot be treated as formulas by spreadsheet applications.
 export function csvCell(value:unknown){const s=String(value??'');return '"'+(/^(?:[\s]*[=+@\-]|[\t\r\n])/.test(s)?"'"+s:s).replaceAll('"','""')+'"';}
-export function monthlyCsv(rows:Record<string,unknown>[]){const keys=['month','mode','ref','name','status','adoptedAt','started','lessonsCompleted','certificate','lessonCompletionRate','certificateRate','feedbackResponses'];return '\uFEFF'+[keys.map(csvCell).join(','),...rows.map(row=>keys.map(k=>csvCell(row[k])).join(','))].join('\r\n');}
+export function monthlyCsv(rows:Record<string,unknown>[]){const keys=['month','mode','ref','name','status','adoptedAt','started','lessonsCompleted','certificate','lessonCompletionRate','certificateRate','feedbackResponses',...REACH_KEYS.filter(k=>!['started','lessonsCompleted','certificate'].includes(k))];return '\uFEFF'+[keys.map(csvCell).join(','),...rows.map(row=>keys.map(k=>csvCell(row[k])).join(','))].join('\r\n');}
